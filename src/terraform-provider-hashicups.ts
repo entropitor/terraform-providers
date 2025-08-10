@@ -456,14 +456,17 @@ const routes = (router: ConnectRouter) =>
                 {
                   name: "host",
                   type: Buffer.from('"string"'),
+                  optional: true,
                 },
                 {
                   name: "username",
                   type: Buffer.from('"string"'),
+                  optional: true,
                 },
                 {
                   name: "password",
                   type: Buffer.from('"string"'),
+                  optional: true,
                 },
               ],
             },
