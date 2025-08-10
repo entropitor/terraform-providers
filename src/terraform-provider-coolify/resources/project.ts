@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import { schema, tf } from "../../provider-sdk/attributes.js";
 import { coolifyProviderBuilder } from "../builder.js";
 import { Diagnostics } from "../../provider-sdk/diagnostics.js";
+import { effectify } from "../effectify.js";
 
 export const coolifyProject = coolifyProviderBuilder.resource({
   schema: schema({
@@ -11,41 +12,40 @@ export const coolifyProject = coolifyProviderBuilder.resource({
   }),
 
   read({ savedState }, client) {
-    return Effect.gen(function* () {
-      const project = yield* Effect.promise(() =>
-        client.GET("/projects/{uuid}", {
-          params: { path: { uuid: savedState.uuid } },
-        }),
-      );
-      if (project.response.status == 404) {
-        return { currentState: null };
-      }
-      if (!project.response.ok || project.data == null) {
-        return yield* Diagnostics.crit([], "Failed to read project");
-      }
-      return {
-        currentState: project.data,
-      };
-    });
+    return effectify(() =>
+      client.GET("/projects/{uuid}", {
+        params: { path: { uuid: savedState.uuid } },
+      }),
+    ).pipe(
+      Effect.map((project) => ({ currentState: project })),
+      Effect.catchTag("RequestError", ({ response, error }) => {
+        if (response.status == 404) {
+          return Effect.succeed({ currentState: null });
+        }
+
+        return Diagnostics.crit([], `Failed to read project: ${error.message}`);
+      }),
+    );
   },
 
   create({ config }, client) {
     return Effect.gen(function* () {
-      const project = yield* Effect.promise(() =>
+      const project = yield* effectify(() =>
         client.POST("/projects", {
           body: {
             name: config.name,
             description: config.description,
           },
         }),
+      ).pipe(
+        Effect.catchTag("RequestError", ({ error }) =>
+          Diagnostics.crit([], `Failed to create project: ${error.message}`),
+        ),
       );
-      if (!project.response.ok || project.data == null) {
-        return yield* Diagnostics.crit([], "Failed to create project");
-      }
       return {
         newState: {
           ...config,
-          ...project.data,
+          ...project,
         },
       };
     });
@@ -53,7 +53,7 @@ export const coolifyProject = coolifyProviderBuilder.resource({
 
   update({ config, priorState }, client) {
     return Effect.gen(function* () {
-      const project = yield* Effect.promise(() =>
+      const project = yield* effectify(() =>
         client.PATCH("/projects/{uuid}", {
           params: { path: { uuid: priorState.uuid } },
           body: {
@@ -61,42 +61,46 @@ export const coolifyProject = coolifyProviderBuilder.resource({
             description: config.description,
           },
         }),
+      ).pipe(
+        Effect.catchTag("RequestError", ({ error }) =>
+          Diagnostics.crit([], `Failed to update project: ${error.message}`),
+        ),
       );
-      if (!project.response.ok || project.data == null) {
-        return yield* Diagnostics.crit([], "Failed to update project");
-      }
+
       return {
-        newState: project.data,
+        newState: project,
       };
     });
   },
 
   delete({ priorState }, client) {
     return Effect.gen(function* () {
-      const response = yield* Effect.promise(() =>
+      yield* effectify(() =>
         client.DELETE("/projects/{uuid}", {
           params: { path: { uuid: priorState.uuid } },
         }),
+      ).pipe(
+        Effect.catchTag("RequestError", ({ error }) =>
+          Diagnostics.crit([], `Failed to delete project: ${error.message}`),
+        ),
       );
-      if (!response.response.ok) {
-        return yield* Diagnostics.crit([], "Failed to delete project");
-      }
-      return {};
     });
   },
 
   import({ resourceId }, client) {
     return Effect.gen(function* () {
-      const project = yield* Effect.promise(() =>
+      const project = yield* effectify(() =>
         client.GET("/projects/{uuid}", {
           params: { path: { uuid: resourceId } },
         }),
+      ).pipe(
+        Effect.catchTag("RequestError", ({ error }) =>
+          Diagnostics.crit([], `Failed to import project: ${error.message}`),
+        ),
       );
-      if (!project.response.ok || project.data == null) {
-        return yield* Diagnostics.crit([], "Failed to import project");
-      }
+
       return {
-        currentState: project.data,
+        currentState: project,
       };
     });
   },
