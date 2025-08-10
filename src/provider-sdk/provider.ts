@@ -2,7 +2,7 @@ import type { Provider as TerraformProvider } from "../gen/tfplugin6/tfplugin6.7
 import type { ConfigFor, Schema } from "./attributes.js";
 import { toTerraformSchema } from "./attributes.js";
 import { Effect } from "effect";
-import { decode } from "./codec.js";
+import { decode, Unknown } from "./codec.js";
 import type { ServiceImpl } from "@connectrpc/connect";
 import { datasource, type DataSource, type IDataSource } from "./datasource.js";
 import { resource, type IResource, type Resource } from "./resource.js";
@@ -141,6 +141,12 @@ class ProviderBuilder<
         }
 
         const config: ProviderConfig = decode(req.config!.msgpack);
+
+        // This happens during terraform tests, not sure if it happens in normal usage
+        if (Object.values(config).every((value) => value instanceof Unknown)) {
+          return {};
+        }
+
         return await Effect.runPromise(
           provider.validate({ config }).pipe(
             Effect.map(() => ({})),
