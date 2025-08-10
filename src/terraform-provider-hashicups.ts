@@ -318,6 +318,12 @@ const routes = (router: ConnectRouter) =>
           };
         }
       },
+      upgradeResourceState(req) {
+        console.error("[ERROR] upgradeResourceState", providerInstanceId);
+        return {
+          upgradedState: { json: req.rawState!.json },
+        };
+      },
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
