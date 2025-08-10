@@ -121,17 +121,17 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
   >;
 }
 
-export type Resource = ReturnType<typeof resource>;
+export type Resource = ReturnType<typeof createResource>;
 
-export const resource = <TResourceSchema extends Schema, TState>(
+export const createResource = <TResourceSchema extends Schema, TState>(
   provider: ProviderForResources<TState>,
-  args: IResource<TResourceSchema, TState>,
+  resource: IResource<TResourceSchema, TState>,
 ) => {
   type ResourceConfig = ConfigFor<TResourceSchema>;
   type ResourceState = StateFor<TResourceSchema>;
 
   return {
-    schema: args.schema,
+    schema: resource.schema,
 
     async validateResourceConfig(
       req: ValidateDataResourceConfig_Request,
@@ -143,12 +143,12 @@ export const resource = <TResourceSchema extends Schema, TState>(
       );
       const config: ResourceConfig = decode(req.config!.msgpack);
 
-      if (args.validate == null) {
+      if (resource.validate == null) {
         return {};
       }
 
       return await Effect.runPromise(
-        args.validate(config, provider.state).pipe(withDiagnostics()),
+        resource.validate(config, provider.state).pipe(withDiagnostics()),
         { signal: ctx.signal },
       );
     },
@@ -160,13 +160,13 @@ export const resource = <TResourceSchema extends Schema, TState>(
 
       const priorState: ResourceState = decode(req.priorState!.msgpack);
       const proposedNewState: ResourceState = preprocessPlan<
-        typeof args.schema
-      >(args.schema, priorState, decode(req.proposedNewState!.msgpack));
+        typeof resource.schema
+      >(resource.schema, priorState, decode(req.proposedNewState!.msgpack));
 
-      if (args.plan == null) {
+      if (resource.plan == null) {
         return {
           plannedState: {
-            msgpack: encodeWithSchema(proposedNewState, args.schema),
+            msgpack: encodeWithSchema(proposedNewState, resource.schema),
           },
         };
       }
@@ -179,7 +179,7 @@ export const resource = <TResourceSchema extends Schema, TState>(
           (byte, index) => byte == req.priorState?.msgpack[index],
         );
       return await Effect.runPromise(
-        args
+        resource
           .plan(
             {
               config,
@@ -192,7 +192,10 @@ export const resource = <TResourceSchema extends Schema, TState>(
           .pipe(
             Effect.map((response) => ({
               plannedState: {
-                msgpack: encodeWithSchema(response.plannedState, args.schema),
+                msgpack: encodeWithSchema(
+                  response.plannedState,
+                  resource.schema,
+                ),
               },
             })),
             withDiagnostics(),
@@ -212,29 +215,34 @@ export const resource = <TResourceSchema extends Schema, TState>(
       return await Effect.runPromise(
         Effect.gen(function* () {
           if (priorState == null) {
-            const response = yield* args.create(
+            const response = yield* resource.create(
               { config, priorState: null },
               provider.state,
             );
             return {
               newState: {
-                msgpack: encodeWithSchema(response.newState, args.schema),
+                msgpack: encodeWithSchema(response.newState, resource.schema),
               },
             };
           } else if (config != null) {
-            const response = yield* args.update(
+            const response = yield* resource.update(
               { config, priorState },
               provider.state,
             );
             return {
               newState: {
-                msgpack: encodeWithSchema(response.newState, args.schema),
+                msgpack: encodeWithSchema(response.newState, resource.schema),
               },
             };
           } else {
-            yield* args.delete({ config: null, priorState }, provider.state);
+            yield* resource.delete(
+              { config: null, priorState },
+              provider.state,
+            );
             return {
-              newState: { msgpack: encodeWithSchema(null, args.schema) },
+              newState: {
+                msgpack: encodeWithSchema(null, resource.schema),
+              },
             };
           }
         }).pipe(withDiagnostics()),
@@ -248,10 +256,10 @@ export const resource = <TResourceSchema extends Schema, TState>(
         return { newState: { msgpack: encode(null) } };
       }
       return await Effect.runPromise(
-        args.read({ savedState }, provider.state).pipe(
+        resource.read({ savedState }, provider.state).pipe(
           Effect.map((response) => ({
             newState: {
-              msgpack: encodeWithSchema(response.currentState, args.schema),
+              msgpack: encodeWithSchema(response.currentState, resource.schema),
             },
           })),
           withDiagnostics(),
@@ -265,7 +273,7 @@ export const resource = <TResourceSchema extends Schema, TState>(
     ): Promise<PartialMessage<ImportResourceState_Response>> {
       console.error("[ERROR] importResourceState", provider.providerInstanceId);
 
-      if (args.import == null) {
+      if (resource.import == null) {
         return {
           diagnostics: [
             {
@@ -279,13 +287,16 @@ export const resource = <TResourceSchema extends Schema, TState>(
 
       const resourceId = req.id;
       return await Effect.runPromise(
-        args.import({ resourceId }, provider.state).pipe(
+        resource.import({ resourceId }, provider.state).pipe(
           Effect.map((response) => ({
             importedResources: [
               {
                 typeName: req.typeName,
                 state: {
-                  msgpack: encodeWithSchema(response.currentState, args.schema),
+                  msgpack: encodeWithSchema(
+                    response.currentState,
+                    resource.schema,
+                  ),
                 },
               },
             ],

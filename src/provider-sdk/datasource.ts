@@ -46,16 +46,16 @@ export interface IDataSource<TDataSourceSchema extends Schema, TProviderState> {
   >;
 }
 
-export type DataSource = ReturnType<typeof datasource>;
+export type DataSource = ReturnType<typeof createDataSource>;
 
-export const datasource = <TDataSourceSchema extends Schema, TState>(
+export const createDataSource = <TDataSourceSchema extends Schema, TState>(
   provider: ProviderForResources<TState>,
-  args: IDataSource<TDataSourceSchema, TState>,
+  datasource: IDataSource<TDataSourceSchema, TState>,
 ) => {
   type DataSourceConfig = ConfigFor<TDataSourceSchema>;
 
   return {
-    schema: args.schema,
+    schema: datasource.schema,
 
     async validateDataResourceConfig(
       req: ValidateDataResourceConfig_Request,
@@ -66,13 +66,13 @@ export const datasource = <TDataSourceSchema extends Schema, TState>(
         provider.providerInstanceId,
       );
 
-      if (args.validate === undefined) {
+      if (datasource.validate === undefined) {
         return {};
       }
 
       const config: DataSourceConfig = decode(req.config!.msgpack);
       return await Effect.runPromise(
-        args.validate({ config }, provider.state).pipe(
+        datasource.validate({ config }, provider.state).pipe(
           Effect.map(() => ({})),
           withDiagnostics(),
         ),
@@ -85,10 +85,10 @@ export const datasource = <TDataSourceSchema extends Schema, TState>(
       console.error("[ERROR] readDataSource", provider.providerInstanceId);
       const config: DataSourceConfig = decode(req.config!.msgpack);
       return await Effect.runPromise(
-        args.read({ config }, provider.state).pipe(
+        datasource.read({ config }, provider.state).pipe(
           Effect.map((resp) => ({
             state: {
-              msgpack: encodeWithSchema(resp.state, args.schema),
+              msgpack: encodeWithSchema(resp.state, datasource.schema),
             },
           })),
           withDiagnostics(),

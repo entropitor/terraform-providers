@@ -4,8 +4,12 @@ import { toTerraformSchema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode, Unknown } from "./codec.js";
 import type { ServiceImpl } from "@connectrpc/connect";
-import { datasource, type DataSource, type IDataSource } from "./datasource.js";
-import { resource, type IResource, type Resource } from "./resource.js";
+import {
+  createDataSource,
+  type DataSource,
+  type IDataSource,
+} from "./datasource.js";
+import { createResource, type IResource, type Resource } from "./resource.js";
 import type { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { serveProvider } from "./serve.js";
 import {
@@ -96,13 +100,13 @@ class ProviderBuilder<
     const datasources: Record<string, DataSource> = Object.fromEntries(
       Object.entries(args.datasources).map(([name, datasourceInput]) => [
         name,
-        datasource(providerInput, datasourceInput),
+        createDataSource(providerInput, datasourceInput),
       ]),
     );
     const resources: Record<string, Resource> = Object.fromEntries(
       Object.entries(args.resources).map(([name, resourceInput]) => [
         name,
-        resource(providerInput, resourceInput),
+        createResource(providerInput, resourceInput),
       ]),
     );
 
