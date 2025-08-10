@@ -2,7 +2,7 @@ import type { ConnectRouter } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import http from "node:http2";
 import forge from "node-forge";
-import { decode } from "msgpackr";
+import { decode, encode } from "msgpackr";
 
 import { Health } from "./gen/grpc/health/v1/health_connect.js";
 import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
@@ -10,7 +10,10 @@ import { GRPCStdio } from "./gen/plugin/grpc_stdio_connect.js";
 import { Provider } from "./gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "./certificate.js";
 import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
-import { Diagnostic_Severity } from "./gen/tfplugin6/tfplugin6.7_pb.js";
+import {
+  Diagnostic_Severity,
+  Schema_Object_NestingMode,
+} from "./gen/tfplugin6/tfplugin6.7_pb.js";
 
 const providerInstanceId = Math.floor(Math.random() * 1000);
 
@@ -42,6 +45,16 @@ class HashiCupsApiClient {
     const json: any = await response.json();
     return new HashiCupsApiClient(config.host, json.token);
   }
+
+  async coffees() {
+    const response = await fetch(new URL("/coffees", this.host));
+    if (!response.ok) {
+      throw new Error("Could not get coffees");
+    }
+
+    const json: any = await response.json();
+    return json;
+  }
 }
 
 let client: HashiCupsApiClient | null = null;
@@ -67,6 +80,28 @@ const routes = (router: ConnectRouter) =>
                     { selector: { case: "attributeName", value: "password" } },
                   ],
                 },
+              },
+            ],
+          };
+        }
+      },
+      async readDataSource() {
+        console.error("[ERROR] readDataSource", providerInstanceId);
+        try {
+          return {
+            state: {
+              msgpack: encode({
+                coffees: await client!.coffees(),
+              }),
+            },
+          };
+        } catch (error: any) {
+          return {
+            diagnostics: [
+              {
+                detail: error.message,
+                summary: "No coffees",
+                severity: Diagnostic_Severity.ERROR,
               },
             ],
           };
@@ -120,7 +155,80 @@ const routes = (router: ConnectRouter) =>
             },
           },
           dataSourceSchemas: {
-            hashicups_coffees: { block: {} },
+            hashicups_coffees: {
+              block: {
+                attributes: [
+                  {
+                    name: "coffees",
+                    computed: true,
+                    nestedType: {
+                      nesting: Schema_Object_NestingMode.LIST,
+                      attributes: [
+                        {
+                          name: "collection",
+                          type: Buffer.from('"string"'),
+                          computed: true,
+                        },
+                        {
+                          name: "color",
+                          type: Buffer.from('"string"'),
+                          computed: true,
+                        },
+                        {
+                          name: "description",
+                          type: Buffer.from('"string"'),
+                          computed: true,
+                        },
+                        {
+                          name: "id",
+                          type: Buffer.from('"number"'),
+                          computed: true,
+                        },
+                        {
+                          name: "image",
+                          type: Buffer.from('"string"'),
+                          computed: true,
+                        },
+                        {
+                          name: "ingredients",
+                          nestedType: {
+                            nesting: Schema_Object_NestingMode.LIST,
+                            attributes: [
+                              {
+                                name: "ingredient_id",
+                                type: Buffer.from('"number"'),
+                                computed: true,
+                              },
+                            ],
+                          },
+                          computed: true,
+                        },
+                        {
+                          name: "name",
+                          type: Buffer.from('"string"'),
+                          computed: true,
+                        },
+                        {
+                          name: "origin",
+                          type: Buffer.from('"string"'),
+                          computed: true,
+                        },
+                        {
+                          name: "price",
+                          type: Buffer.from('"number"'),
+                          computed: true,
+                        },
+                        {
+                          name: "teaser",
+                          type: Buffer.from('"string"'),
+                          computed: true,
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
           },
         };
       },
