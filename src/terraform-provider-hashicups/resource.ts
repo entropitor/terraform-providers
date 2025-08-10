@@ -1,11 +1,10 @@
 import type { ConfigFor, StateFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
-import { decode } from "./codec.js";
+import { decode, encode } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import type { PartialMessage } from "@bufbuild/protobuf";
 import type {
   ApplyResourceChange_Request,
-  ApplyResourceChange_Response,
   PlanResourceChange_Request,
   PlanResourceChange_Response,
   ValidateDataResourceConfig_Request,
@@ -25,11 +24,21 @@ interface CreateRequest<TResourceSchema extends Schema> {
 }
 interface UpdateRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
-  priorState: NoInfer<StateFor<TResourceSchema>>;
+  priorState: StateFor<TResourceSchema>;
 }
 interface DeleteRequest<TResourceSchema extends Schema> {
   config: null;
-  priorState: NoInfer<StateFor<TResourceSchema>>;
+  priorState: StateFor<TResourceSchema>;
+}
+
+interface CreateResponse<TResourceSchema extends Schema> {
+  newState: StateFor<TResourceSchema>;
+}
+interface UpdateResponse<TResourceSchema extends Schema> {
+  newState: StateFor<TResourceSchema>;
+}
+interface DeleteResponse<_TResourceSchema extends Schema> {
+  diagnostics?: never[];
 }
 
 export interface IResource<TResourceSchema extends Schema, TProviderState> {
@@ -46,15 +55,15 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
   create: (
     req: NoInfer<CreateRequest<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<PartialMessage<ApplyResourceChange_Response>>;
+  ) => Effect.Effect<NoInfer<CreateResponse<TResourceSchema>>>;
   update: (
     req: NoInfer<UpdateRequest<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<PartialMessage<ApplyResourceChange_Response>>;
+  ) => Effect.Effect<NoInfer<UpdateResponse<TResourceSchema>>>;
   delete: (
     req: NoInfer<DeleteRequest<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<PartialMessage<ApplyResourceChange_Response>>;
+  ) => Effect.Effect<NoInfer<DeleteResponse<TResourceSchema>>>;
 }
 
 export type Resource = ReturnType<typeof resource>;
@@ -94,7 +103,7 @@ export const resource = <TResourceSchema extends Schema, TState>(
       );
       const same =
         req.proposedNewState?.msgpack.length ==
-        req.priorState?.msgpack.length &&
+          req.priorState?.msgpack.length &&
         req.proposedNewState?.msgpack.every(
           (byte, index) => byte == req.priorState?.msgpack[index],
         );
@@ -123,13 +132,28 @@ export const resource = <TResourceSchema extends Schema, TState>(
       const priorState: ResourceState = decode(req.priorState!.msgpack);
 
       return await Effect.runPromise(
-        Effect.gen(function*() {
+        Effect.gen(function* () {
           if (priorState == null) {
-            return yield* args.create({ config, priorState: null }, provider.state);
+            const response = yield* args.create(
+              { config, priorState: null },
+              provider.state,
+            );
+            return {
+              newState: { msgpack: encode(response.newState), diagnostics: [] },
+            };
           } else if (config != null) {
-            return yield* args.update({ config, priorState }, provider.state);
+            const response = yield* args.update(
+              { config, priorState },
+              provider.state,
+            );
+            return {
+              newState: { msgpack: encode(response.newState), diagnostics: [] },
+            };
           } else {
-            return yield* args.delete({ config: null, priorState }, provider.state);
+            yield* args.delete({ config: null, priorState }, provider.state);
+            return {
+              newState: { msgpack: encode(null), diagnostics: [] },
+            };
           }
         }),
         { signal: ctx.signal },

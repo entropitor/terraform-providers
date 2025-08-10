@@ -75,10 +75,8 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
       const order = await client.createOrder(config.items);
       return {
         newState: {
-          msgpack: encode({
-            ...order,
-            last_updated: new Date().toISOString(),
-          }),
+          ...order,
+          last_updated: new Date().toISOString(),
         },
       };
     });
@@ -89,10 +87,8 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
       const order = await client.getOrder(prior.id);
       return {
         newState: {
-          msgpack: encode({
-            ...order,
-            last_updated: new Date().toISOString(),
-          }),
+          ...order,
+          last_updated: new Date().toISOString(),
         },
       };
     });
@@ -100,10 +96,7 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
   delete({ priorState: prior }, client) {
     return Effect.promise(async () => {
       await client.deleteOrder(prior.id);
-      return {
-        newState: { msgpack: encode(null) },
-      };
+      return {};
     });
   },
-
 });
