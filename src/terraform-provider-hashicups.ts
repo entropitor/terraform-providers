@@ -211,6 +211,24 @@ const COFFEE_ATTRIBUTES = [
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
+      async importResourceState(req) {
+        console.error("[ERROR] importResourceState", providerInstanceId);
+
+        const order = await client!.getOrder(parseInt(req.id, 10));
+        return {
+          importedResources: [
+            {
+              typeName: req.typeName,
+              state: {
+                msgpack: encode({
+                  ...order,
+                  last_updated: null,
+                }),
+              },
+            },
+          ],
+        };
+      },
       async configureProvider(req) {
         console.error("[ERROR] configureProvider", providerInstanceId);
         const decoded = decode(req.config!.msgpack);
@@ -407,6 +425,9 @@ const routes = (router: ConnectRouter) =>
         console.error("[ERROR] readResource", providerInstanceId);
         try {
           const currentState = decode(req.currentState!.msgpack);
+          if (currentState == null) {
+            return { newState: { msgpack: encode(null) } };
+          }
           return {
             newState: {
               msgpack: encode({
