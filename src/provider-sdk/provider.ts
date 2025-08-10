@@ -44,7 +44,7 @@ export interface IProvider<
     req: NoInfer<ValidateRequest<TProviderSchema>>,
   ) => Effect.Effect<
     void | NoInfer<ValidateResponse<TProviderSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
 }
