@@ -1,10 +1,11 @@
 import type { ConfigFor, StateFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
-import { decode, encodeWithSchema } from "./codec.js";
+import { decode, encode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import type {
   ApplyResourceChange_Request,
   PlanResourceChange_Request,
+  ReadResource_Request,
   ValidateDataResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
@@ -15,6 +16,9 @@ interface PlanRequest<TResourceSchema extends Schema> {
   proposedNewState: NoInfer<StateFor<TResourceSchema>>;
   priorState: NoInfer<StateFor<TResourceSchema>>;
   proposedNewStateIsPriorState: boolean;
+}
+interface ReadRequest<TResourceSchema extends Schema> {
+  savedState: StateFor<TResourceSchema>;
 }
 interface CreateRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
@@ -33,6 +37,9 @@ interface PlanResponse<TResourceSchema extends Schema> {
   plannedState: StateFor<TResourceSchema>;
 }
 
+interface ReadResponse<TResourceSchema extends Schema> {
+  currentState: StateFor<TResourceSchema>;
+}
 interface CreateResponse<TResourceSchema extends Schema> {
   newState: StateFor<TResourceSchema>;
 }
@@ -52,6 +59,15 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<PlanResponse<TResourceSchema>>,
+    never,
+    Diagnostics
+  >;
+
+  read: (
+    req: NoInfer<ReadRequest<TResourceSchema>>,
+    providerState: TProviderState,
+  ) => Effect.Effect<
+    NoInfer<ReadResponse<TResourceSchema>>,
     never,
     Diagnostics
   >;
@@ -191,6 +207,24 @@ export const resource = <TResourceSchema extends Schema, TState>(
             };
           }
         }).pipe(withDiagnostics()),
+        { signal: ctx.signal },
+      );
+    },
+    async readResource(req: ReadResource_Request, ctx: HandlerContext) {
+      console.error("[ERROR] readResource", provider.providerInstanceId);
+      const savedState = decode(req.currentState!.msgpack);
+      if (savedState == null) {
+        return { newState: { msgpack: encode(null) } };
+      }
+      return await Effect.runPromise(
+        args.read({ savedState }, provider.state).pipe(
+          Effect.map((response) => ({
+            newState: {
+              msgpack: encodeWithSchema(response.currentState, args.schema),
+            },
+          })),
+          withDiagnostics(),
+        ),
         { signal: ctx.signal },
       );
     },

@@ -64,6 +64,12 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
     });
   },
 
+  read({ savedState }, client) {
+    return Effect.promise(() => client.getOrder(savedState.id)).pipe(
+      Effect.map((order) => ({ currentState: order })),
+    );
+  },
+
   create({ config }, client) {
     return Effect.gen(function* () {
       const order = yield* Effect.promise(() =>

@@ -9,10 +9,9 @@ import { GRPCStdio } from "../gen/plugin/grpc_stdio_connect.js";
 import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
-import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import { toTerraformSchema } from "./attributes.js";
 import { hashicupsProvider } from "./hashicups/HashicupsProvider.js";
-import { encode, decode } from "./codec.js";
+import { encode } from "./codec.js";
 
 const providerInstanceId = hashicupsProvider.providerInstanceId;
 
@@ -66,31 +65,8 @@ const routes = (router: ConnectRouter) =>
           upgradedState: { json: req.rawState!.json },
         };
       },
-      async readResource(req) {
-        console.error("[ERROR] readResource", providerInstanceId);
-        try {
-          const currentState = decode(req.currentState!.msgpack);
-          if (currentState == null) {
-            return { newState: { msgpack: encode(null) } };
-          }
-          return {
-            newState: {
-              msgpack: encode({
-                ...currentState,
-                ...(await hashicupsProvider.state.getOrder(currentState.id)),
-              }),
-            },
-          };
-        } catch (error) {
-          return {
-            diagnostics: [
-              {
-                severity: Diagnostic_Severity.ERROR,
-                detail: error?.toString() ?? "Unknown error",
-              },
-            ],
-          };
-        }
+      async readResource(req, ctx) {
+        return hashicupsProvider.readResource(req, ctx);
       },
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);

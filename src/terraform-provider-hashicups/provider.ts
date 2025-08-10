@@ -4,6 +4,7 @@ import type {
   ConfigureProvider_Response,
   PlanResourceChange_Request,
   ReadDataSource_Request,
+  ReadResource_Request,
   ValidateProviderConfig_Request,
   ValidateProviderConfig_Response,
   ValidateResourceConfig_Request,
@@ -179,6 +180,10 @@ class ProviderBuilder<
       ) {
         const resource = resources[req.typeName];
         return resource!.applyResourceChange(req, ctx);
+      },
+      async readResource(req: ReadResource_Request, ctx: HandlerContext) {
+        const resource = resources[req.typeName];
+        return resource!.readResource(req, ctx);
       },
     };
   }
