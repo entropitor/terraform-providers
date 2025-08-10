@@ -107,6 +107,22 @@ class ProviderBuilder<
       providerInstanceId,
       providerSchema: provider.schema,
 
+      getSchema() {
+        return {
+          provider: provider.schema,
+          resourceSchemas: Object.fromEntries(
+            Object.entries(resources).map(
+              ([name, resource]) => [name, resource.schema] as const,
+            ),
+          ),
+          dataSourceSchemas: Object.fromEntries(
+            Object.entries(datasources).map(
+              ([name, datasource]) => [name, datasource.schema] as const,
+            ),
+          ),
+        };
+      },
+
       async validateProviderConfig(
         req: ValidateProviderConfig_Request,
         ctx: HandlerContext,

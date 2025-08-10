@@ -11,10 +11,7 @@ import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import { toTerraformSchema } from "./attributes.js";
-import {
-  hashicupsProvider,
-  providerSchema,
-} from "./hashicups/HashicupsProvider.js";
+import { hashicupsProvider } from "./hashicups/HashicupsProvider.js";
 import { encode, decode } from "./codec.js";
 
 const providerInstanceId = hashicupsProvider.providerInstanceId;
@@ -97,6 +94,7 @@ const routes = (router: ConnectRouter) =>
       },
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
+        const providerSchema = hashicupsProvider.getSchema();
         return {
           provider: hashicupsProvider.providerSchema.toTerraformSchema(),
           resourceSchemas: Object.fromEntries(
