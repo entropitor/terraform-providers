@@ -1,9 +1,9 @@
 import { Effect } from "effect";
-import { schema, tf, withDescription } from "./attributes.js";
-import { providerBuilder } from "./provider.js";
+import { schema, tf, withDescription } from "../attributes.js";
+import { providerBuilder } from "../provider.js";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
-import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
-import { encode, Unknown } from "./codec.js";
+import { Diagnostic_Severity } from "../../gen/tfplugin6/tfplugin6.7_pb.js";
+import { encode, Unknown } from "../codec.js";
 
 const coffeeAttributes = {
   collection: tf.computed.string(),
