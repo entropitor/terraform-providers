@@ -12,7 +12,11 @@ import {
   type ValidateDataResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
-import { Diagnostics, withDiagnostics } from "./diagnostics.js";
+import {
+  DiagnosticError,
+  Diagnostics,
+  withDiagnostics,
+} from "./diagnostics.js";
 import type { PartialMessage } from "@bufbuild/protobuf";
 
 interface PlanRequest<TResourceSchema extends Schema> {
@@ -64,12 +68,12 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     config: NoInfer<ConfigFor<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<void, never, Diagnostics>;
-  plan: (
+  plan?: (
     req: NoInfer<PlanRequest<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<PlanResponse<TResourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
 
@@ -78,7 +82,7 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<ReadResponse<TResourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
   import?: (
@@ -86,7 +90,7 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<ImportResponse<TResourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
 
@@ -95,7 +99,7 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<CreateResponse<TResourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
   update: (
@@ -103,7 +107,7 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<UpdateResponse<TResourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
   delete: (
@@ -111,7 +115,7 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     void | NoInfer<DeleteResponse<TResourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
 }
@@ -152,6 +156,13 @@ export const resource = <TResourceSchema extends Schema, TState>(
       ctx: HandlerContext,
     ) {
       console.error("[ERROR] planResourceChange", provider.providerInstanceId);
+
+      if (args.plan == null) {
+        return {
+          plannedState: { msgpack: req.proposedNewState!.msgpack },
+        };
+      }
+
       const config: ResourceConfig = decode(req.config!.msgpack);
       const priorState: ResourceState = decode(req.priorState!.msgpack);
       const proposedNewState: ResourceState = decode(
@@ -182,9 +193,7 @@ export const resource = <TResourceSchema extends Schema, TState>(
             })),
             withDiagnostics(),
           ),
-        {
-          signal: ctx.signal,
-        },
+        { signal: ctx.signal },
       );
     },
 

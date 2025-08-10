@@ -7,7 +7,11 @@ import type {
   ValidateDataResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
-import { withDiagnostics, type Diagnostics } from "./diagnostics.js";
+import {
+  DiagnosticError,
+  withDiagnostics,
+  type Diagnostics,
+} from "./diagnostics.js";
 
 interface ReadRequest<TDataSourceSchema extends Schema> {
   config: ConfigFor<TDataSourceSchema>;
@@ -29,7 +33,7 @@ export interface IDataSource<TDataSourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     void | NoInfer<ValidateResponse<TDataSourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
   read: (
@@ -37,7 +41,7 @@ export interface IDataSource<TDataSourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<ReadResponse<TDataSourceSchema>>,
-    never,
+    DiagnosticError,
     Diagnostics
   >;
 }
