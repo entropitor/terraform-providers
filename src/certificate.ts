@@ -4,7 +4,7 @@ const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 
-export const generateIdentity = () => {
+export const generateIdentity = (nbHours = 1) => {
   const host = "localhost";
 
   const cert = pki.createCertificate();
@@ -17,7 +17,7 @@ export const generateIdentity = () => {
   cert.serialNumber = "01";
 
   cert.validity.notBefore = new Date(Date.now() - 30 * ONE_SECOND);
-  cert.validity.notAfter = new Date(Date.now() + ONE_HOUR);
+  cert.validity.notAfter = new Date(Date.now() + ONE_HOUR * nbHours);
 
   cert.setSubject([
     {
