@@ -1,120 +1,95 @@
-lockfileVersion: '6.0'
+lockfileVersion: '9.0'
 
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  '@bufbuild/buf':
-    specifier: ^1.46.0
-    version: 1.46.0
-  '@bufbuild/protobuf':
-    specifier: ^1.10.0
-    version: 1.10.0
-  '@connectrpc/connect':
-    specifier: ^1.6.1
-    version: 1.6.1(@bufbuild/protobuf@1.10.0)
-  '@connectrpc/connect-node':
-    specifier: ^1.6.1
-    version: 1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1)
-  node-forge:
-    specifier: ^1.3.1
-    version: 1.3.1
-  typescript:
-    specifier: ^5.6.3
-    version: 5.6.3
+importers:
 
-devDependencies:
-  '@bufbuild/protoc-gen-es':
-    specifier: ^1.10.0
-    version: 1.10.0(@bufbuild/protobuf@1.10.0)
-  '@connectrpc/protoc-gen-connect-es':
-    specifier: ^1.6.1
-    version: 1.6.1(@bufbuild/protoc-gen-es@1.10.0)(@connectrpc/connect@1.6.1)
-  '@tsconfig/strictest':
-    specifier: ^2.0.5
-    version: 2.0.5
-  '@types/node':
-    specifier: ^22.8.7
-    version: 22.8.7
-  '@types/node-forge':
-    specifier: ^1.3.11
-    version: 1.3.11
+  .:
+    dependencies:
+      '@bufbuild/buf':
+        specifier: ^1.46.0
+        version: 1.46.0
+      '@bufbuild/protobuf':
+        specifier: ^1.10.0
+        version: 1.10.0
+      '@connectrpc/connect':
+        specifier: ^1.6.1
+        version: 1.6.1(@bufbuild/protobuf@1.10.0)
+      '@connectrpc/connect-node':
+        specifier: ^1.6.1
+        version: 1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1)
+      node-forge:
+        specifier: ^1.3.1
+        version: 1.3.1
+      typescript:
+        specifier: ^5.6.3
+        version: 5.6.3
+    devDependencies:
+      '@bufbuild/protoc-gen-es':
+        specifier: ^1.10.0
+        version: 1.10.0(@bufbuild/protobuf@1.10.0)
+      '@connectrpc/protoc-gen-connect-es':
+        specifier: ^1.6.1
+        version: 1.6.1(@bufbuild/protoc-gen-es@1.10.0)(@connectrpc/connect@1.6.1)
+      '@tsconfig/strictest':
+        specifier: ^2.0.5
+        version: 2.0.5
+      '@types/node':
+        specifier: ^22.8.7
+        version: 22.8.7
+      '@types/node-forge':
+        specifier: ^1.3.11
+        version: 1.3.11
 
 packages:
 
-  /@bufbuild/buf-darwin-arm64@1.46.0:
+  '@bufbuild/buf-darwin-arm64@1.46.0':
     resolution: {integrity: sha512-lSmTKyRhg+71acXp9QeX/wm+vjkf0J3n38wph7KOwMfCEeK4A2AkqsGOkoXSiaIvidA2pRU9RJRQYfryzCA9Pg==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [darwin]
-    requiresBuild: true
-    dev: false
-    optional: true
 
-  /@bufbuild/buf-darwin-x64@1.46.0:
+  '@bufbuild/buf-darwin-x64@1.46.0':
     resolution: {integrity: sha512-Oa9XTLJshsEjzowyt2mH9XrXW38DRFdz7ml+IYKXVQPotNLr04ix7QES7A1eOBJtxLwuTiri4ScXuBLQGNX8+A==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [darwin]
-    requiresBuild: true
-    dev: false
-    optional: true
 
-  /@bufbuild/buf-linux-aarch64@1.46.0:
+  '@bufbuild/buf-linux-aarch64@1.46.0':
     resolution: {integrity: sha512-CbxbLH5sQCRjEKVEcWJySvCKyAPAUhX0vCTifT/eQyZ70FUsqCJKJ6+dKl6Ajk0CgUHqf8jkU/wX/+aQFYXyaA==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
 
-  /@bufbuild/buf-linux-x64@1.46.0:
+  '@bufbuild/buf-linux-x64@1.46.0':
     resolution: {integrity: sha512-bMqp+Q+16KPbuwX34/OLDeiimnwt5sfvHqyeMeRz4LLwLshbmM3m+8dGCSHZRo3Lr+4gW1PfunrfaEmcGqPHLQ==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
 
-  /@bufbuild/buf-win32-arm64@1.46.0:
+  '@bufbuild/buf-win32-arm64@1.46.0':
     resolution: {integrity: sha512-geVYXp1PWJiAAFpwhgP8Cnct0+Rdr89BF/WZoIh5WwFGYITGiu5Hb1Ui9DTrEYwDzahPCyPxgIVwzzW6kPWSag==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [win32]
-    requiresBuild: true
-    dev: false
-    optional: true
 
-  /@bufbuild/buf-win32-x64@1.46.0:
+  '@bufbuild/buf-win32-x64@1.46.0':
     resolution: {integrity: sha512-6nsxkzj5a1L41NOJFKjli8j6GB/NkPHLIr0T/b27Y3GfprVYQawOComYD5HfojvBLuAiE2cD/kEQIWKK1YRcng==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [win32]
-    requiresBuild: true
-    dev: false
-    optional: true
 
-  /@bufbuild/buf@1.46.0:
+  '@bufbuild/buf@1.46.0':
     resolution: {integrity: sha512-uN3NKuAKvcQcZc1hn9+njSCusL7NAILqQI7mlkDDa4kRy7cTsiw53ggddfAs0YXbQ8zZnmudwwWjKRDIUaRqXQ==}
     engines: {node: '>=12'}
     hasBin: true
-    requiresBuild: true
-    optionalDependencies:
-      '@bufbuild/buf-darwin-arm64': 1.46.0
-      '@bufbuild/buf-darwin-x64': 1.46.0
-      '@bufbuild/buf-linux-aarch64': 1.46.0
-      '@bufbuild/buf-linux-x64': 1.46.0
-      '@bufbuild/buf-win32-arm64': 1.46.0
-      '@bufbuild/buf-win32-x64': 1.46.0
-    dev: false
 
-  /@bufbuild/protobuf@1.10.0:
+  '@bufbuild/protobuf@1.10.0':
     resolution: {integrity: sha512-QDdVFLoN93Zjg36NoQPZfsVH9tZew7wKDKyV5qRdj8ntT4wQCOradQjRaTdwMhWUYsgKsvCINKKm87FdEk96Ag==}
 
-  /@bufbuild/protoc-gen-es@1.10.0(@bufbuild/protobuf@1.10.0):
+  '@bufbuild/protoc-gen-es@1.10.0':
     resolution: {integrity: sha512-zBYBsVT/ul4uZb6F+kD7/k4sWNHVVbEPfJwKi0FDr+9VJo8MKIofI6pkr5ksBLr4fi/74r+e/75Xi/0clL5dXg==}
     engines: {node: '>=14'}
     hasBin: true
@@ -123,43 +98,23 @@ packages:
     peerDependenciesMeta:
       '@bufbuild/protobuf':
         optional: true
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-      '@bufbuild/protoplugin': 1.10.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
 
-  /@bufbuild/protoplugin@1.10.0:
+  '@bufbuild/protoplugin@1.10.0':
     resolution: {integrity: sha512-u6NE4vL0lw1+EK4/PiE/SQB7fKO4LRJNTEScIXVOi2x88K/c8WKc/k0KyEaA0asVBMpwekJQZGnRyj04ZtN5Gg==}
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-      '@typescript/vfs': 1.6.0(typescript@4.5.2)
-      typescript: 4.5.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
 
-  /@connectrpc/connect-node@1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1):
+  '@connectrpc/connect-node@1.6.1':
     resolution: {integrity: sha512-DxcD1wsF/aX9GegjAtl7VbpiZNjVJozy87VbaFoN6AF0Ln1Q757r5dgV59Gz0wmlk5f17txUsrEr1f2inlnnAg==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       '@bufbuild/protobuf': ^1.10.0
       '@connectrpc/connect': 1.6.1
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.0)
-      undici: 5.28.4
-    dev: false
 
-  /@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0):
+  '@connectrpc/connect@1.6.1':
     resolution: {integrity: sha512-KchMDNtU4CDTdkyf0qG7ugJ6qHTOR/aI7XebYn3OTCNagaDYWiZUVKgRgwH79yeMkpNgvEUaXSK7wKjaBK9b/Q==}
     peerDependencies:
       '@bufbuild/protobuf': ^1.10.0
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
 
-  /@connectrpc/protoc-gen-connect-es@1.6.1(@bufbuild/protoc-gen-es@1.10.0)(@connectrpc/connect@1.6.1):
+  '@connectrpc/protoc-gen-connect-es@1.6.1':
     resolution: {integrity: sha512-0fHcaADd+GKM0I/koIQpmKg7b+QL18bXlggTUYEAlMFzsd4zN/ApG3235hdUcRyhrAOAItTXxh8ZAV/nNd43Gg==}
     engines: {node: '>=16.0.0'}
     hasBin: true
@@ -171,48 +126,26 @@ packages:
         optional: true
       '@connectrpc/connect':
         optional: true
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-      '@bufbuild/protoc-gen-es': 1.10.0(@bufbuild/protobuf@1.10.0)
-      '@bufbuild/protoplugin': 1.10.0
-      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.0)
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
 
-  /@fastify/busboy@2.1.1:
+  '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
-    dev: false
 
-  /@tsconfig/strictest@2.0.5:
+  '@tsconfig/strictest@2.0.5':
     resolution: {integrity: sha512-ec4tjL2Rr0pkZ5hww65c+EEPYwxOi4Ryv+0MtjeaSQRJyq322Q27eOQiFbuNgw2hpL4hB1/W/HBGk3VKS43osg==}
-    dev: true
 
-  /@types/node-forge@1.3.11:
+  '@types/node-forge@1.3.11':
     resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
-    dependencies:
-      '@types/node': 22.8.7
-    dev: true
 
-  /@types/node@22.8.7:
+  '@types/node@22.8.7':
     resolution: {integrity: sha512-LidcG+2UeYIWcMuMUpBKOnryBWG/rnmOHQR5apjn8myTQcx3rinFRn7DcIFhMnS0PPFSC6OafdIKEad0lj6U0Q==}
-    dependencies:
-      undici-types: 6.19.8
-    dev: true
 
-  /@typescript/vfs@1.6.0(typescript@4.5.2):
+  '@typescript/vfs@1.6.0':
     resolution: {integrity: sha512-hvJUjNVeBMp77qPINuUvYXj4FyWeeMMKZkxEATEU3hqBAQ7qdTBCUFT7Sp0Zu0faeEtFf+ldXxMEDr/bk73ISg==}
     peerDependencies:
       typescript: '*'
-    dependencies:
-      debug: 4.3.7
-      typescript: 4.5.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
 
-  /debug@4.3.7:
+  debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
     engines: {node: '>=6.0'}
     peerDependencies:
@@ -220,38 +153,129 @@ packages:
     peerDependenciesMeta:
       supports-color:
         optional: true
-    dependencies:
-      ms: 2.1.3
-    dev: true
 
-  /ms@2.1.3:
+  ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
-    dev: true
 
-  /node-forge@1.3.1:
+  node-forge@1.3.1:
     resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
     engines: {node: '>= 6.13.0'}
-    dev: false
 
-  /typescript@4.5.2:
+  typescript@4.5.2:
     resolution: {integrity: sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
 
-  /typescript@5.6.3:
+  typescript@5.6.3:
     resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
     hasBin: true
-    dev: false
 
-  /undici-types@6.19.8:
+  undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
-    dev: true
 
-  /undici@5.28.4:
+  undici@5.28.4:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
     engines: {node: '>=14.0'}
+
+snapshots:
+
+  '@bufbuild/buf-darwin-arm64@1.46.0':
+    optional: true
+
+  '@bufbuild/buf-darwin-x64@1.46.0':
+    optional: true
+
+  '@bufbuild/buf-linux-aarch64@1.46.0':
+    optional: true
+
+  '@bufbuild/buf-linux-x64@1.46.0':
+    optional: true
+
+  '@bufbuild/buf-win32-arm64@1.46.0':
+    optional: true
+
+  '@bufbuild/buf-win32-x64@1.46.0':
+    optional: true
+
+  '@bufbuild/buf@1.46.0':
+    optionalDependencies:
+      '@bufbuild/buf-darwin-arm64': 1.46.0
+      '@bufbuild/buf-darwin-x64': 1.46.0
+      '@bufbuild/buf-linux-aarch64': 1.46.0
+      '@bufbuild/buf-linux-x64': 1.46.0
+      '@bufbuild/buf-win32-arm64': 1.46.0
+      '@bufbuild/buf-win32-x64': 1.46.0
+
+  '@bufbuild/protobuf@1.10.0': {}
+
+  '@bufbuild/protoc-gen-es@1.10.0(@bufbuild/protobuf@1.10.0)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@bufbuild/protoplugin': 1.10.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@bufbuild/protoplugin@1.10.0':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@typescript/vfs': 1.6.0(typescript@4.5.2)
+      typescript: 4.5.2
+    transitivePeerDependencies:
+      - supports-color
+
+  '@connectrpc/connect-node@1.6.1(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.6.1)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.0)
+      undici: 5.28.4
+
+  '@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.0)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+
+  '@connectrpc/protoc-gen-connect-es@1.6.1(@bufbuild/protoc-gen-es@1.10.0)(@connectrpc/connect@1.6.1)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@bufbuild/protoc-gen-es': 1.10.0(@bufbuild/protobuf@1.10.0)
+      '@bufbuild/protoplugin': 1.10.0
+      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.0)
+    transitivePeerDependencies:
+      - supports-color
+
+  '@fastify/busboy@2.1.1': {}
+
+  '@tsconfig/strictest@2.0.5': {}
+
+  '@types/node-forge@1.3.11':
+    dependencies:
+      '@types/node': 22.8.7
+
+  '@types/node@22.8.7':
+    dependencies:
+      undici-types: 6.19.8
+
+  '@typescript/vfs@1.6.0(typescript@4.5.2)':
+    dependencies:
+      debug: 4.3.7
+      typescript: 4.5.2
+    transitivePeerDependencies:
+      - supports-color
+
+  debug@4.3.7:
+    dependencies:
+      ms: 2.1.3
+
+  ms@2.1.3: {}
+
+  node-forge@1.3.1: {}
+
+  typescript@4.5.2: {}
+
+  typescript@5.6.3: {}
+
+  undici-types@6.19.8: {}
+
+  undici@5.28.4:
     dependencies:
       '@fastify/busboy': 2.1.1
-    dev: false
