@@ -41,10 +41,7 @@ const routes = (router: ConnectRouter) =>
         return hashicupsProvider.applyResourceChange(req, ctx);
       },
       upgradeResourceState(req) {
-        console.error("[ERROR] upgradeResourceState", providerInstanceId);
-        return {
-          upgradedState: { json: req.rawState!.json },
-        };
+        return hashicupsProvider.upgradeResourceState(req);
       },
       async readResource(req, ctx) {
         return hashicupsProvider.readResource(req, ctx);
