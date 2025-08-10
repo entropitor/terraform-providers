@@ -33,7 +33,7 @@ export class Diagnostics extends Effect.Tag("Diagnostics")<
       detail?: string,
     ): void;
   }
->() { }
+>() {}
 
 const provideDiagnostics = () =>
   Effect.provideService(Diagnostics, {

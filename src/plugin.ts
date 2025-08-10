@@ -53,4 +53,3 @@ const server = http
     }
     console.log(`1|1|tcp|127.0.0.1:${address.port}|grpc`);
   });
-
