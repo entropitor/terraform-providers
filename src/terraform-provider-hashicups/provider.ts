@@ -11,14 +11,16 @@ import type {
   ValidateProviderConfig_Response,
   ValidateResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
+import type { Provider as TerraformProvider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import type { ConfigFor, Schema } from "./attributes.js";
 import { toTerraformSchema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode } from "./codec.js";
-import type { HandlerContext } from "@connectrpc/connect";
+import type { HandlerContext, ServiceImpl } from "@connectrpc/connect";
 import type { PartialMessage } from "@bufbuild/protobuf";
 import { datasource, type DataSource, type IDataSource } from "./datasource.js";
 import { resource, type IResource, type Resource } from "./resource.js";
+import type { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 
 interface IProvider<
   TProviderSchema extends Schema,
@@ -76,7 +78,8 @@ class ProviderBuilder<
   build(args: {
     resources: Record<string, IResource<any, TInternalState>>;
     datasources: Record<string, IDataSource<any, TInternalState>>;
-  }) {
+  }): Partial<ServiceImpl<typeof TerraformProvider>> &
+    ServiceImpl<typeof GRPCController> {
     const providerInstanceId = Math.floor(Math.random() * 1000);
     type ProviderConfig = ConfigFor<TProviderSchema>;
 
@@ -108,6 +111,7 @@ class ProviderBuilder<
       shutdown() {
         console.error("[ERROR] Shutdown", providerInstanceId);
         console.error("[ERROR]");
+        process.exit(0);
       },
 
       getProviderSchema() {

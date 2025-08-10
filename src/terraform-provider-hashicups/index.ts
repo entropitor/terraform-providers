@@ -13,47 +13,8 @@ import { hashicupsProvider } from "./hashicups/HashicupsProvider.js";
 
 const routes = (router: ConnectRouter) =>
   router
-    .service(Provider, {
-      async importResourceState(req, ctx) {
-        return hashicupsProvider.importResourceState(req, ctx);
-      },
-      async configureProvider(req, ctx) {
-        return hashicupsProvider.configureProvider(req, ctx);
-      },
-      async readDataSource(req, ctx) {
-        return hashicupsProvider.readDataSource(req, ctx);
-      },
-      validateProviderConfig(req, ctx) {
-        return hashicupsProvider.validateProviderConfig(req, ctx);
-      },
-      validateDataResourceConfig(req, ctx) {
-        return hashicupsProvider.validateDataResourceConfig(req, ctx);
-      },
-      validateResourceConfig(req, ctx) {
-        return hashicupsProvider.validateResourceConfig(req, ctx);
-      },
-      planResourceChange(req, ctx) {
-        return hashicupsProvider.planResourceChange(req, ctx);
-      },
-      applyResourceChange(req, ctx) {
-        return hashicupsProvider.applyResourceChange(req, ctx);
-      },
-      upgradeResourceState(req) {
-        return hashicupsProvider.upgradeResourceState(req);
-      },
-      async readResource(req, ctx) {
-        return hashicupsProvider.readResource(req, ctx);
-      },
-      getProviderSchema(_req) {
-        return hashicupsProvider.getProviderSchema();
-      },
-    })
-    .service(GRPCController, {
-      shutdown() {
-        hashicupsProvider.shutdown();
-        process.exit(0);
-      },
-    })
+    .service(Provider, hashicupsProvider)
+    .service(GRPCController, hashicupsProvider)
     .service(Health, {
       check(_req) {
         return {
