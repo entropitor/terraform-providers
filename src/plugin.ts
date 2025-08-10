@@ -7,6 +7,7 @@ import { Health } from "./gen/grpc/health/v1/health_connect.js";
 import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
 import { GRPCStdio } from "./gen/plugin/grpc_stdio_connect.js";
 import { StdioData_Channel } from "./gen/plugin/grpc_stdio_pb.js";
+import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
 
 const routes = (router: ConnectRouter) =>
   router
@@ -20,6 +21,11 @@ const routes = (router: ConnectRouter) =>
         return {
           status: HealthCheckResponse_ServingStatus.SERVING,
         };
+      },
+    })
+    .service(GRPCController, {
+      shutdown() {
+        process.exit(0);
       },
     })
     .service(GRPCStdio, {
@@ -47,12 +53,4 @@ const server = http
     }
     console.log(`1|1|tcp|127.0.0.1:${address.port}|grpc`);
   });
-server.on("session", (session) => {
-  session.socket.on("close", () => {
-    server.close();
-  });
-});
 
-process.on("SIGTERM", () => {
-  server.close();
-});

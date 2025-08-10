@@ -6,9 +6,9 @@ import forge from "node-forge";
 import { Health } from "./gen/grpc/health/v1/health_connect.js";
 import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
 import { GRPCStdio } from "./gen/plugin/grpc_stdio_connect.js";
-import { StdioData_Channel } from "./gen/plugin/grpc_stdio_pb.js";
 import { Provider } from "./gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "./certificate.js";
+import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
 
 const serverCapabilities = {
   getProviderSchemaOptional: true,
@@ -29,6 +29,11 @@ const routes = (router: ConnectRouter) =>
           },
           // serverCapabilities,
         };
+      },
+    })
+    .service(GRPCController, {
+      shutdown() {
+        process.exit(0);
       },
     })
     .service(Health, {
@@ -69,16 +74,7 @@ const serverCertificateString = forge.util
   .replace(/=*$/, "");
 
 const PORT = 4001;
-const server = http
+http
   .createSecureServer({ cert, key }, connectNodeAdapter({ routes }))
   .listen(PORT);
-server.on("session", (session) => {
-  session.socket.on("close", () => {
-    server.close();
-  });
-});
 console.log(`1|6|tcp|127.0.0.1:${PORT}|grpc|${serverCertificateString}`);
-
-process.on("SIGTERM", () => {
-  server.close();
-});
