@@ -168,49 +168,50 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     ): Promise<PartialMessage<PlanResourceChange_Response>> {
       console.error("[ERROR] planResourceChange", provider.providerInstanceId);
 
-      const priorState: ResourceState = decode(req.priorState!.msgpack);
-      const proposedNewState: ResourceState = preprocessPlan<
-        typeof resource.schema
-      >(resource.schema, priorState, decode(req.proposedNewState!.msgpack));
-
-      if (resource.plan == null) {
-        return {
-          plannedState: {
-            msgpack: encodeWithSchema(proposedNewState, resource.schema),
-          },
-        };
-      }
-
-      const config: ResourceConfig = decode(req.config!.msgpack);
-      const same =
-        req.proposedNewState?.msgpack.length ==
-          req.priorState?.msgpack.length &&
-        req.proposedNewState?.msgpack.every(
-          (byte, index) => byte == req.priorState?.msgpack[index],
-        );
       const [response, requiresReplace] = await Effect.runPromise(
-        resource
-          .plan(
-            {
-              config,
-              priorState,
-              proposedNewState,
-              proposedNewStateIsPriorState: same ?? false,
-            },
-            provider.state,
-          )
-          .pipe(
-            Effect.map((response) => ({
+        Effect.gen(function* () {
+          const priorState: ResourceState = decode(req.priorState!.msgpack);
+          const proposedNewState: ResourceState = yield* preprocessPlan<
+            typeof resource.schema
+          >(resource.schema, priorState, decode(req.proposedNewState!.msgpack));
+
+          if (resource.plan == null) {
+            return {
               plannedState: {
-                msgpack: encodeWithSchema(
-                  response.plannedState,
-                  resource.schema,
-                ),
+                msgpack: encodeWithSchema(proposedNewState, resource.schema),
               },
-            })),
-            withDiagnostics(),
-            withTrackedReplacements(),
-          ),
+            };
+          }
+
+          const config: ResourceConfig = decode(req.config!.msgpack);
+          const same =
+            req.proposedNewState?.msgpack.length ==
+              req.priorState?.msgpack.length &&
+            req.proposedNewState?.msgpack.every(
+              (byte, index) => byte == req.priorState?.msgpack[index],
+            );
+
+          return yield* resource
+            .plan(
+              {
+                config,
+                priorState,
+                proposedNewState,
+                proposedNewStateIsPriorState: same ?? false,
+              },
+              provider.state,
+            )
+            .pipe(
+              Effect.map((response) => ({
+                plannedState: {
+                  msgpack: encodeWithSchema(
+                    response.plannedState,
+                    resource.schema,
+                  ),
+                },
+              })),
+            );
+        }).pipe(withDiagnostics(), withTrackedReplacements()),
         { signal: ctx.signal },
       );
 

@@ -27,6 +27,7 @@ export type Attribute<
   TPresence extends Presence = Presence,
 > = TAttributeType & { presence: TPresence } & {
   description?: string;
+  requiresReplacementOnChange?: boolean;
 };
 
 abstract class BaseAttribute implements Pipeable {
@@ -273,6 +274,13 @@ export const withDescription =
   <T extends Attribute | Schema>(attributeOrSchema: T) => ({
     ...attributeOrSchema,
     description,
+  });
+
+export const requiresReplacementOnChange =
+  () =>
+  <T extends Attribute | Schema>(attributeOrSchema: T) => ({
+    ...attributeOrSchema,
+    requiresReplacementOnChange: true,
   });
 
 type ConfigForAttribute<TAttribute extends Attribute> =

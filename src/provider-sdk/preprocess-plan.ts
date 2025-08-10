@@ -1,3 +1,4 @@
+import { Effect } from "effect";
 import { unreachable } from "../utils/unreachable.js";
 import {
   UnionAttribute,
@@ -7,56 +8,124 @@ import {
   type StateFor,
 } from "./attributes.js";
 import { Unknown } from "./codec.js";
+import {
+  attributePath,
+  RequiresReplacementTracker,
+  type AttributePath,
+} from "./require-replacement.js";
+import type { DiagnosticError, Diagnostics } from "./diagnostics.js";
 
-const preprocessObject = (prior: any, proposed: any, fields: Fields) => {
-  if (proposed == null || proposed instanceof Unknown) {
-    return proposed;
-  }
-  return Object.fromEntries(
-    Object.entries(fields).flatMap(([fieldName, field]) => {
-      if (field instanceof UnionAttribute) {
-        return field.alternatives.flatMap(
-          (alternative: UnionAttribute["alternatives"][number]) =>
-            Object.entries(preprocessObject(prior, proposed, alternative)),
-        );
-      }
-      return [
-        [
-          fieldName,
-          preprocessAttribute(prior?.[fieldName], proposed?.[fieldName], field),
-        ],
-      ];
-    }),
-  );
-};
+// Delete does not call plan
+type PlanOperation = "create" | "update";
+
+type PreProcessResult<T = any> = Effect.Effect<
+  T,
+  DiagnosticError,
+  Diagnostics | RequiresReplacementTracker
+>;
+
+const preprocessObject = (
+  prior: any,
+  proposed: any,
+  fields: Fields,
+  path: AttributePath,
+  operation: PlanOperation,
+): PreProcessResult =>
+  Effect.gen(function* () {
+    if (proposed == null || proposed instanceof Unknown) {
+      return proposed;
+    }
+
+    const newEntries = yield* Effect.all(
+      Object.entries(fields).map(([fieldName, field]) =>
+        Effect.gen(function* () {
+          if (field instanceof UnionAttribute) {
+            const effects = (
+              field.alternatives as UnionAttribute["alternatives"]
+            ).map((alternative: UnionAttribute["alternatives"][number]) =>
+              preprocessObject(
+                prior,
+                proposed,
+                alternative,
+                path,
+                operation,
+              ).pipe(Effect.map((x) => Object.entries(x))),
+            );
+            return (yield* Effect.all(effects)).flat();
+          }
+
+          const attributeResult = yield* preprocessAttribute(
+            prior?.[fieldName],
+            proposed?.[fieldName],
+            field,
+            [...path, attributePath.attribute(fieldName)],
+            operation,
+          );
+          return [[fieldName, attributeResult]] as const;
+        }),
+      ),
+    );
+
+    return Object.fromEntries(newEntries.flat());
+  });
+
 const preprocessAttribute = (
   prior: any,
   proposed: any,
   attribute: Attribute,
-): unknown => {
-  if (attribute.presence === "computed" && proposed == null) {
-    return prior ?? new Unknown();
-  }
+  path: AttributePath,
+  operation: PlanOperation,
+): PreProcessResult =>
+  Effect.gen(function* () {
+    if (attribute.requiresReplacementOnChange && operation == "update") {
+      yield* RequiresReplacementTracker.add(path);
+    }
 
-  switch (attribute.type) {
-    case "string":
-    case "number":
-    case "boolean":
-      return proposed;
-    case "object":
-      return preprocessObject(prior, proposed, attribute.fields);
-    case "list":
-      return proposed.map((proposedItem: any, index: number) =>
-        preprocessObject(prior?.[index], proposedItem, attribute.fields),
-      );
-    default:
-      return unreachable(attribute);
-  }
-};
+    if (attribute.presence === "computed" && proposed == null) {
+      return prior ?? new Unknown();
+    }
+
+    switch (attribute.type) {
+      case "string":
+      case "number":
+      case "boolean":
+        return proposed;
+      case "object":
+        return yield* preprocessObject(
+          prior,
+          proposed,
+          attribute.fields,
+          path,
+          operation,
+        );
+      case "list":
+        const effects = (proposed as any[]).map(
+          (proposedItem: any, index: number) =>
+            preprocessObject(
+              prior?.[index],
+              proposedItem,
+              attribute.fields,
+              [...path, attributePath.elementIndex(index)],
+              operation,
+            ),
+        );
+        return yield* Effect.all(effects);
+      default:
+        return unreachable(attribute);
+    }
+  });
+
 export const preprocessPlan = <TResourceSchema extends Schema>(
   schema: TResourceSchema,
   priorState: StateFor<TResourceSchema> | null,
   proposedNewState: StateFor<TResourceSchema> | null,
-): StateFor<TResourceSchema> => {
-  return preprocessObject(priorState, proposedNewState, schema.attributes);
+): PreProcessResult<StateFor<TResourceSchema>> => {
+  const operation = priorState == null ? "create" : "update";
+  return preprocessObject(
+    priorState,
+    proposedNewState,
+    schema.attributes,
+    [],
+    operation,
+  );
 };
