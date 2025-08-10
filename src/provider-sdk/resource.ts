@@ -23,8 +23,8 @@ import { preValidateSchema } from "./pre-validate.js";
 
 interface PlanRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
-  proposedNewState: NoInfer<StateFor<TResourceSchema>>;
-  priorState: NoInfer<StateFor<TResourceSchema>>;
+  proposedNewState: StateFor<TResourceSchema>;
+  priorState: StateFor<TResourceSchema>;
   proposedNewStateIsPriorState: boolean;
 }
 interface ReadRequest<TResourceSchema extends Schema> {
@@ -126,7 +126,7 @@ export type Resource = ReturnType<typeof createResource>;
 
 export const createResource = <TResourceSchema extends Schema, TState>(
   provider: ProviderForResources<TState>,
-  resource: IResource<TResourceSchema, TState>,
+  resource: IResource<TResourceSchema, NoInfer<TState>>,
 ) => {
   type ResourceConfig = ConfigFor<TResourceSchema>;
   type ResourceState = StateFor<TResourceSchema>;
@@ -256,7 +256,7 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     },
     async readResource(req: ReadResource_Request, ctx: HandlerContext) {
       console.error("[ERROR] readResource", provider.providerInstanceId);
-      const savedState = decode(req.currentState!.msgpack);
+      const savedState: ResourceState = decode(req.currentState!.msgpack);
       if (savedState == null) {
         return { newState: { msgpack: encode(null) } };
       }

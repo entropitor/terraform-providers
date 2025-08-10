@@ -66,19 +66,19 @@ class ProviderBuilder<
   ) {}
 
   resource<TResourceSchema extends Schema>(
-    resource: IResource<TResourceSchema, TInternalState>,
+    resource: IResource<TResourceSchema, NoInfer<TInternalState>>,
   ) {
     return resource;
   }
   datasource<TDataSourceSchema extends Schema>(
-    datasource: IDataSource<TDataSourceSchema, TInternalState>,
+    datasource: IDataSource<TDataSourceSchema, NoInfer<TInternalState>>,
   ) {
     return datasource;
   }
 
   serve(args: {
-    resources: Record<string, IResource<any, TInternalState>>;
-    datasources: Record<string, IDataSource<any, TInternalState>>;
+    resources: Record<string, IResource<any, NoInfer<TInternalState>>>;
+    datasources: Record<string, IDataSource<any, NoInfer<TInternalState>>>;
   }): void {
     const providerInstanceId = Math.floor(Math.random() * 1000);
     type ProviderConfig = ConfigFor<TProviderSchema>;
