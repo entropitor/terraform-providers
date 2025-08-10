@@ -50,7 +50,7 @@ interface PlanResponse<TResourceSchema extends Schema> {
 }
 
 interface ReadResponse<TResourceSchema extends Schema> {
-  currentState: StateFor<TResourceSchema>;
+  currentState: StateFor<TResourceSchema> | null;
 }
 interface ImportResponse<TResourceSchema extends Schema> {
   currentState: StateFor<TResourceSchema>;

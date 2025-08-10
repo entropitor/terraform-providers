@@ -17,6 +17,9 @@ export const coolifyProject = coolifyProviderBuilder.resource({
           params: { path: { uuid: savedState.uuid } },
         }),
       );
+      if (project.response.status == 404) {
+        return { currentState: null };
+      }
       if (!project.response.ok || project.data == null) {
         return yield* Diagnostics.crit([], "Failed to read project");
       }
