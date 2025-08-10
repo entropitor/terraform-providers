@@ -55,9 +55,84 @@ class HashiCupsApiClient {
     const json: any = await response.json();
     return json;
   }
+
+  async getOrder(id: number) {
+    const response = await fetch(new URL(`/orders/${id}`, this.host), {
+      headers: {
+        Authorization: this.token,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Could not get order: ${await response.text()}`);
+    }
+
+    const json: any = await response.json();
+    return json;
+  }
 }
 
 let client: HashiCupsApiClient | null = null;
+const COFFEE_ATTRIBUTES = [
+  {
+    name: "collection",
+    type: Buffer.from('"string"'),
+    computed: true,
+  },
+  {
+    name: "color",
+    type: Buffer.from('"string"'),
+    computed: true,
+  },
+  {
+    name: "description",
+    type: Buffer.from('"string"'),
+    computed: true,
+  },
+  {
+    name: "id",
+    type: Buffer.from('"number"'),
+    computed: true,
+  },
+  {
+    name: "image",
+    type: Buffer.from('"string"'),
+    computed: true,
+  },
+  {
+    name: "ingredients",
+    nestedType: {
+      nesting: Schema_Object_NestingMode.LIST,
+      attributes: [
+        {
+          name: "ingredient_id",
+          type: Buffer.from('"number"'),
+          computed: true,
+        },
+      ],
+    },
+    computed: true,
+  },
+  {
+    name: "name",
+    type: Buffer.from('"string"'),
+    computed: true,
+  },
+  {
+    name: "origin",
+    type: Buffer.from('"string"'),
+    computed: true,
+  },
+  {
+    name: "price",
+    type: Buffer.from('"number"'),
+    computed: true,
+  },
+  {
+    name: "teaser",
+    type: Buffer.from('"string"'),
+    computed: true,
+  },
+];
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
@@ -85,22 +160,34 @@ const routes = (router: ConnectRouter) =>
           };
         }
       },
-      async readDataSource() {
+      async readDataSource(req) {
         console.error("[ERROR] readDataSource", providerInstanceId);
+        const config = decode(req.config!.msgpack);
         try {
-          return {
-            state: {
-              msgpack: encode({
-                coffees: await client!.coffees(),
-              }),
-            },
-          };
+          switch (req.typeName) {
+            case "hashicups_coffees":
+              return {
+                state: {
+                  msgpack: encode({
+                    coffees: await client!.coffees(),
+                  }),
+                },
+              };
+            case "hashicups_order":
+              return {
+                state: {
+                  msgpack: encode(await client!.getOrder(config.id)),
+                },
+              };
+            default:
+              throw new Error("Unknown data source");
+          }
         } catch (error: any) {
           return {
             diagnostics: [
               {
                 detail: error.message,
-                summary: "No coffees",
+                summary: "Error while reading resource",
                 severity: Diagnostic_Severity.ERROR,
               },
             ],
@@ -163,64 +250,33 @@ const routes = (router: ConnectRouter) =>
                     computed: true,
                     nestedType: {
                       nesting: Schema_Object_NestingMode.LIST,
+                      attributes: COFFEE_ATTRIBUTES,
+                    },
+                  },
+                ],
+              },
+            },
+            hashicups_order: {
+              block: {
+                attributes: [
+                  { name: "id", type: Buffer.from('"number"'), required: true },
+                  {
+                    name: "items",
+                    computed: true,
+                    nestedType: {
+                      nesting: Schema_Object_NestingMode.LIST,
                       attributes: [
                         {
-                          name: "collection",
-                          type: Buffer.from('"string"'),
-                          computed: true,
-                        },
-                        {
-                          name: "color",
-                          type: Buffer.from('"string"'),
-                          computed: true,
-                        },
-                        {
-                          name: "description",
-                          type: Buffer.from('"string"'),
-                          computed: true,
-                        },
-                        {
-                          name: "id",
-                          type: Buffer.from('"number"'),
-                          computed: true,
-                        },
-                        {
-                          name: "image",
-                          type: Buffer.from('"string"'),
-                          computed: true,
-                        },
-                        {
-                          name: "ingredients",
+                          name: "coffee",
                           nestedType: {
-                            nesting: Schema_Object_NestingMode.LIST,
-                            attributes: [
-                              {
-                                name: "ingredient_id",
-                                type: Buffer.from('"number"'),
-                                computed: true,
-                              },
-                            ],
+                            nesting: Schema_Object_NestingMode.SINGLE,
+                            attributes: COFFEE_ATTRIBUTES,
                           },
                           computed: true,
                         },
                         {
-                          name: "name",
-                          type: Buffer.from('"string"'),
-                          computed: true,
-                        },
-                        {
-                          name: "origin",
-                          type: Buffer.from('"string"'),
-                          computed: true,
-                        },
-                        {
-                          name: "price",
+                          name: "quantity",
                           type: Buffer.from('"number"'),
-                          computed: true,
-                        },
-                        {
-                          name: "teaser",
-                          type: Buffer.from('"string"'),
                           computed: true,
                         },
                       ],
