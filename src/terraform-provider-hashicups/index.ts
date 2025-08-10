@@ -52,11 +52,17 @@ const serverCertificateString = forge.util
   // Remove padding
   .replace(/=*$/, "");
 
-const PORT = 4001;
-http
-  .createSecureServer({ cert, key }, connectNodeAdapter({ routes }))
-  .listen(PORT);
-console.log(`1|6|tcp|127.0.0.1:${PORT}|grpc|${serverCertificateString}`);
+const server = http.createSecureServer(
+  { cert, key },
+  connectNodeAdapter({ routes }),
+);
+server.listen(0, () => {
+  const info = server.address();
+  if (typeof info === "string" || info === null) {
+    process.exit(1);
+  }
+  console.log(`1|6|tcp|127.0.0.1:${info.port}|grpc|${serverCertificateString}`);
+});
 
 process.on("uncaughtException", (error) => console.error(error));
 process.on("unhandledRejection", (error) => console.error(error));
