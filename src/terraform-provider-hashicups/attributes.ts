@@ -6,6 +6,7 @@ import {
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import { pipeArguments, type Pipeable } from "effect/Pipeable";
 import type { PartialMessage } from "@bufbuild/protobuf";
+import type { ForceTypescriptComputation } from "./ForceTypescriptComputation.js";
 
 type AttributeType =
   | { type: "string" }
@@ -43,20 +44,29 @@ abstract class BaseAttribute implements Pipeable {
   }
 }
 
-class PrimitiveAttribute extends BaseAttribute {
+class PrimitiveAttribute<
+  TType extends "string" | "number",
+  TPresence extends Presence,
+> extends BaseAttribute {
   constructor(
-    public readonly type: "string" | "number",
-    public readonly presence: Presence,
+    public readonly type: TType,
+    public readonly presence: TPresence,
   ) {
     super();
   }
 }
 
-class CompositeAttribute extends BaseAttribute {
+type Fields = Record<string, Attribute>;
+
+class CompositeAttribute<
+  TType extends "list" | "object",
+  TPresence extends Presence,
+  TFields extends Fields,
+> extends BaseAttribute {
   constructor(
-    public readonly type: "list" | "object",
-    public readonly presence: Presence,
-    public readonly fields: Record<string, Attribute>,
+    public readonly type: TType,
+    public readonly presence: TPresence,
+    public readonly fields: TFields,
   ) {
     super();
   }
@@ -109,7 +119,7 @@ const typeFrom = (
 };
 
 export const attributeListFrom = (
-  fields: Record<string, Attribute>,
+  fields: Fields,
 ): PartialMessage<Schema_Attribute>[] => {
   return Object.entries(fields).map(
     ([name, attr]): PartialMessage<Schema_Attribute> => {
@@ -124,7 +134,7 @@ export const attributeListFrom = (
 };
 
 type Schema = {
-  attributes: Record<string, Attribute>;
+  attributes: Fields;
   description?: string;
 };
 export const toTerraformSchema = (
@@ -138,8 +148,8 @@ export const toTerraformSchema = (
   };
 };
 
-class SchemaInternal implements Pipeable {
-  constructor(public readonly attributes: Record<string, Attribute>) {}
+class SchemaInternal<TFields extends Fields> implements Pipeable {
+  constructor(public readonly attributes: TFields) {}
 
   pipe<A>(this: A): A;
   pipe<A, B = never>(this: A, ab: (_: A) => B): B;
@@ -170,31 +180,32 @@ export const tf = {
   optional: {
     string: () => new PrimitiveAttribute("string", "optional"),
     number: () => new PrimitiveAttribute("number", "optional"),
-    object: (fields: Record<string, Attribute>) =>
+    object: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("object", "optional", fields),
-    list: (fields: Record<string, Attribute>) =>
+    list: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("list", "optional", fields),
   },
   required: {
     string: () => new PrimitiveAttribute("string", "required"),
     number: () => new PrimitiveAttribute("number", "required"),
-    object: (fields: Record<string, Attribute>) =>
+    object: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("object", "required", fields),
-    list: (fields: Record<string, Attribute>) =>
+    list: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("list", "required", fields),
   },
   computed: {
     string: () => new PrimitiveAttribute("string", "computed"),
     number: () => new PrimitiveAttribute("number", "computed"),
-    object: (fields: Record<string, Attribute>) =>
+    object: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("object", "computed", fields),
-    list: (fields: Record<string, Attribute>) =>
+    list: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("list", "computed", fields),
   },
 };
 
-export const schema = (fields: Record<string, Attribute>) =>
-  new SchemaInternal(fields);
+export const schema = <TFields extends Record<string, Attribute>>(
+  fields: TFields,
+) => new SchemaInternal(fields);
 
 export const withDescription =
   (description: string) =>
@@ -202,3 +213,30 @@ export const withDescription =
     ...attributeOrSchema,
     description,
   });
+
+type ConfigForAttribute<TAttribute extends Attribute> =
+  ForceTypescriptComputation<
+    TAttribute extends { type: "string" }
+      ? string
+      : TAttribute extends { type: "number" }
+        ? number
+        : TAttribute extends { type: "object" }
+          ? {
+              [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends "computed"
+                ? never
+                : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
+            }
+          : TAttribute extends { type: "list" }
+            ? Array<{
+                [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends "computed"
+                  ? never
+                  : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
+              }>
+            : never
+  >;
+
+export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<{
+  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends "computed"
+    ? never
+    : TField]: ConfigForAttribute<TSchema["attributes"][TField]>;
+}>;

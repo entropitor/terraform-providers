@@ -21,6 +21,7 @@ import {
   tf,
   toTerraformSchema,
   withDescription,
+  type ConfigFor,
 } from "./attributes.js";
 
 class Unknown {
@@ -112,6 +113,8 @@ const providerSchema = {
     }),
   },
 };
+
+type ProviderConfig = ConfigFor<typeof providerSchema.provider>;
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
@@ -135,7 +138,7 @@ const routes = (router: ConnectRouter) =>
       },
       async configureProvider(req) {
         console.error("[ERROR] configureProvider", providerInstanceId);
-        const decoded = decode(req.config!.msgpack);
+        const decoded: ProviderConfig = decode(req.config!.msgpack);
 
         try {
           client = await HashiCupsApiClient.signin(decoded);
@@ -193,7 +196,7 @@ const routes = (router: ConnectRouter) =>
       },
       validateProviderConfig(req) {
         console.error("[ERROR] validateProviderConfig", providerInstanceId);
-        const decoded = decode(req.config!.msgpack);
+        const decoded: ProviderConfig = decode(req.config!.msgpack);
         if (!decoded.host.startsWith("https://")) {
           return {
             diagnostics: [
