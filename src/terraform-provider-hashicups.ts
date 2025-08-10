@@ -274,6 +274,7 @@ const routes = (router: ConnectRouter) =>
         console.error("[ERROR] planResourceChange", providerInstanceId);
 
         const proposed = decode(req.proposedNewState?.msgpack);
+        const prior = decode(req.priorState?.msgpack);
 
         const same =
           req.proposedNewState?.msgpack.length ==
@@ -296,6 +297,16 @@ const routes = (router: ConnectRouter) =>
             item.coffee.teaser = new Unknown();
           });
         }
+
+        if (prior.id) {
+          proposed.id = prior.id;
+        }
+        proposed.items.forEach((item: any, index: number) => {
+          const priorItem = prior?.items?.[index];
+          if (item.coffee.id === priorItem.coffee.id) {
+            item.coffee = priorItem.coffee;
+          }
+        });
 
         return {
           plannedState: { msgpack: encode(proposed) },
