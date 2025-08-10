@@ -15,7 +15,12 @@ type AttributeType =
   | { type: "list"; fields: Record<string, Attribute> }
   | { type: "object"; fields: Record<string, Attribute> };
 
-type Presence = "required" | "computed" | "optional" | "computed_optional";
+type Presence =
+  | "required"
+  | "computed"
+  | "optional"
+  | "optional_or_computed"
+  | "required_to_be_computed";
 
 export type Attribute<
   TAttributeType extends AttributeType = AttributeType,
@@ -110,10 +115,11 @@ const presenceFrom = (
       }
       return { required: true, optional: false, computed: false };
     case "computed":
+    case "required_to_be_computed":
       return { required: false, optional: false, computed: true };
     case "optional":
       return { required: false, optional: true, computed: false };
-    case "computed_optional":
+    case "optional_or_computed":
       return { required: false, optional: true, computed: true };
     default:
       return unreachable(attr.presence);
@@ -245,6 +251,15 @@ export const tf = {
     list: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("list", "computed", fields),
   },
+  alwaysComputed: {
+    boolean: () => new PrimitiveAttribute("boolean", "required_to_be_computed"),
+    string: () => new PrimitiveAttribute("string", "required_to_be_computed"),
+    number: () => new PrimitiveAttribute("number", "required_to_be_computed"),
+    object: <TFields extends Fields>(fields: TFields) =>
+      new CompositeAttribute("object", "required_to_be_computed", fields),
+    list: <TFields extends Fields>(fields: TFields) =>
+      new CompositeAttribute("list", "required_to_be_computed", fields),
+  },
   union: <TAlternatives extends AttributeFields[]>(
     ...alternatives: TAlternatives
   ) => new UnionAttribute(alternatives),
@@ -333,8 +348,9 @@ export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<
   ConfigForNormalAttributes<TSchema> & ConfigForUnionAttributes<TSchema>
 >;
 
+type OptionalPresenceInState = "optional" | "optional_or_computed" | "computed";
 type StateForOptionalAttributes<TSchema extends Schema> = {
-  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends "optional"
+  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends OptionalPresenceInState
     ? TField
     : never]+?: TSchema["attributes"][TField] extends infer TAttribute extends
     Attribute
@@ -344,7 +360,7 @@ type StateForOptionalAttributes<TSchema extends Schema> = {
 
 type StateForRequiredAttribute<TSchema extends Schema> = {
   [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends
-    | "optional"
+    | OptionalPresenceInState
     | "union"
     ? never
     : TField]: TSchema["attributes"][TField] extends infer TAttribute extends

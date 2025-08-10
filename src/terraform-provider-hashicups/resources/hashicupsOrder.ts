@@ -5,7 +5,7 @@ import { Unknown } from "../../provider-sdk/codec.js";
 
 export const hashicupsOrder = hashicupsProviderBuilder.resource({
   schema: schema({
-    id: tf.computed.number(),
+    id: tf.alwaysComputed.number(),
     last_updated: tf.computed.string(),
     items: tf.required.list({
       coffee: tf.required.object({

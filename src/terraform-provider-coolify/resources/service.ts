@@ -6,7 +6,7 @@ import { effectify } from "../effectify.js";
 
 export const coolifyService = coolifyProviderBuilder.resource({
   schema: schema({
-    uuid: tf.computed.string(),
+    uuid: tf.alwaysComputed.string(),
     type: tf.optional.string(), // requires replace
     name: tf.required.string(),
     description: tf.optional.string(),
