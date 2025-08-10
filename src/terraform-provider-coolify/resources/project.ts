@@ -2,7 +2,6 @@ import { Effect } from "effect";
 import { schema, tf } from "../../provider-sdk/attributes.js";
 import { coolifyProviderBuilder } from "../builder.js";
 import { Diagnostics } from "../../provider-sdk/diagnostics.js";
-import { Unknown } from "../../provider-sdk/codec.js";
 
 export const coolifyProject = coolifyProviderBuilder.resource({
   schema: schema({
@@ -10,14 +9,6 @@ export const coolifyProject = coolifyProviderBuilder.resource({
     name: tf.required.string(),
     description: tf.optional.string(),
   }),
-
-  plan({ proposedNewState, priorState }) {
-    return Effect.gen(function* () {
-      proposedNewState.uuid = priorState?.uuid ?? new Unknown();
-
-      return { plannedState: proposedNewState };
-    });
-  },
 
   read({ savedState }, client) {
     return Effect.gen(function* () {

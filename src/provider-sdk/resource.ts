@@ -17,6 +17,7 @@ import {
   Diagnostics,
   withDiagnostics,
 } from "./diagnostics.js";
+import { preprocessPlan } from "./preprocess-plan.js";
 import type { PartialMessage } from "@bufbuild/protobuf";
 
 interface PlanRequest<TResourceSchema extends Schema> {
@@ -157,17 +158,20 @@ export const resource = <TResourceSchema extends Schema, TState>(
     ) {
       console.error("[ERROR] planResourceChange", provider.providerInstanceId);
 
+      const priorState: ResourceState = decode(req.priorState!.msgpack);
+      const proposedNewState: ResourceState = preprocessPlan<
+        typeof args.schema
+      >(args.schema, priorState, decode(req.proposedNewState!.msgpack));
+
       if (args.plan == null) {
         return {
-          plannedState: { msgpack: req.proposedNewState!.msgpack },
+          plannedState: {
+            msgpack: encodeWithSchema(proposedNewState, args.schema),
+          },
         };
       }
 
       const config: ResourceConfig = decode(req.config!.msgpack);
-      const priorState: ResourceState = decode(req.priorState!.msgpack);
-      const proposedNewState: ResourceState = decode(
-        req.proposedNewState!.msgpack,
-      );
       const same =
         req.proposedNewState?.msgpack.length ==
           req.priorState?.msgpack.length &&

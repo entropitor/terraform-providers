@@ -48,11 +48,10 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
           item.coffee.price = new Unknown();
           item.coffee.teaser = new Unknown();
         });
+      } else {
+        proposedNewState.last_updated = priorState?.last_updated;
       }
 
-      if (priorState?.id) {
-        proposedNewState.id = priorState.id;
-      }
       proposedNewState.items.forEach((item: any, index: number) => {
         const priorItem = priorState?.items?.[index];
         if (item.coffee?.id === priorItem?.coffee?.id) {
