@@ -275,19 +275,27 @@ const routes = (router: ConnectRouter) =>
 
         const proposed = decode(req.proposedNewState?.msgpack);
 
-        proposed.id ??= new Unknown();
-        proposed.last_updated ??= new Unknown();
-        proposed.items.forEach((item: any) => {
-          item.coffee.collection ??= new Unknown();
-          item.coffee.color ??= new Unknown();
-          item.coffee.description ??= new Unknown();
-          item.coffee.image ??= new Unknown();
-          item.coffee.ingredients ??= new Unknown();
-          item.coffee.name ??= new Unknown();
-          item.coffee.origin ??= new Unknown();
-          item.coffee.price ??= new Unknown();
-          item.coffee.teaser ??= new Unknown();
-        });
+        const same =
+          req.proposedNewState?.msgpack.length ==
+            req.priorState?.msgpack.length &&
+          req.proposedNewState?.msgpack.every(
+            (byte, index) => byte == req.priorState?.msgpack[index],
+          );
+        if (!same) {
+          proposed.id = new Unknown();
+          proposed.last_updated = new Unknown();
+          proposed.items.forEach((item: any) => {
+            item.coffee.collection = new Unknown();
+            item.coffee.color = new Unknown();
+            item.coffee.description = new Unknown();
+            item.coffee.image = new Unknown();
+            item.coffee.ingredients = new Unknown();
+            item.coffee.name = new Unknown();
+            item.coffee.origin = new Unknown();
+            item.coffee.price = new Unknown();
+            item.coffee.teaser = new Unknown();
+          });
+        }
 
         return {
           plannedState: { msgpack: encode(proposed) },
