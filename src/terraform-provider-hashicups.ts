@@ -2,6 +2,7 @@ import type { ConnectRouter } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import http from "node:http2";
 import forge from "node-forge";
+import { decode } from "msgpackr";
 
 import { Health } from "./gen/grpc/health/v1/health_connect.js";
 import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
@@ -9,10 +10,32 @@ import { GRPCStdio } from "./gen/plugin/grpc_stdio_connect.js";
 import { Provider } from "./gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "./certificate.js";
 import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
+import { Diagnostic_Severity } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
+      validateProviderConfig(req) {
+        const decoded = decode(req.config!.msgpack);
+        if (!decoded.host.startsWith("https://")) {
+          return {
+            diagnostics: [
+              {
+                severity: Diagnostic_Severity.WARNING,
+                summary: "Unsafe protocol",
+                detail:
+                  "You are using an unsafe protocol. It will be better if you would set this to https://",
+                attribute: {
+                  steps: [
+                    { selector: { case: "attributeName", value: "host" } },
+                  ],
+                },
+              },
+            ],
+          };
+        }
+        return {};
+      },
       getProviderSchema(_req) {
         return {
           provider: {
