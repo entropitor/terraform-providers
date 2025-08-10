@@ -36,6 +36,9 @@ const routes = (router: ConnectRouter) =>
         }
         return {};
       },
+      validateDataResourceConfig() {
+        return {};
+      },
       getProviderSchema(_req) {
         return {
           provider: {
