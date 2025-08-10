@@ -1,4 +1,4 @@
-import { serveProvider } from "./serve.js";
-import { hashicupsProvider } from "./hashicups/HashicupsProvider.js";
+import { serveProvider } from "../provider-sdk/serve.js";
+import { hashicupsProvider } from "./HashicupsProvider.js";
 
 serveProvider(hashicupsProvider);

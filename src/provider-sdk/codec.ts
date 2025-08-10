@@ -4,7 +4,7 @@ import {
   decode as msgpackDecode,
 } from "@msgpack/msgpack";
 import type { Attribute, Schema } from "./attributes.js";
-import { unreachable } from "./unreachable.js";
+import { unreachable } from "../utils/unreachable.js";
 
 export class Unknown {
   _unknown = "UnknownValue";

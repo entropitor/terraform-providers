@@ -1,7 +1,7 @@
 import { Effect } from "effect";
-import { Diagnostic_Severity } from "../../gen/tfplugin6/tfplugin6.7_pb.js";
-import { schema, tf } from "../attributes.js";
-import { providerBuilder } from "../provider.js";
+import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
+import { schema, tf } from "../provider-sdk/attributes.js";
+import { providerBuilder } from "../provider-sdk/provider.js";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 
 export const hashicupsProviderBuilder = providerBuilder({

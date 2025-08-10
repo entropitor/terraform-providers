@@ -14,7 +14,7 @@
   },
   "scripts": {
     "generate": "buf generate",
-    "types": "tsc -b src/terraform-provider-hashicups",
+    "types": "tsc -b src",
     "prettier": "prettier --write ."
   },
   "devDependencies": {

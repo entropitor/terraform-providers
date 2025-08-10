@@ -2,12 +2,12 @@ import type { ConnectRouter } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import http from "node:http2";
 
-import { KV } from "./gen/proto/kv_connect.js";
-import { Health } from "./gen/grpc/health/v1/health_connect.js";
-import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
-import { GRPCStdio } from "./gen/plugin/grpc_stdio_connect.js";
-import { StdioData_Channel } from "./gen/plugin/grpc_stdio_pb.js";
-import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
+import { KV } from "../gen/proto/kv_connect.js";
+import { Health } from "../gen/grpc/health/v1/health_connect.js";
+import { HealthCheckResponse_ServingStatus } from "../gen/grpc/health/v1/health_pb.js";
+import { GRPCStdio } from "../gen/plugin/grpc_stdio_connect.js";
+import { StdioData_Channel } from "../gen/plugin/grpc_stdio_pb.js";
+import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 
 const routes = (router: ConnectRouter) =>
   router

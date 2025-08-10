@@ -1,7 +1,7 @@
 import { Effect } from "effect";
-import { schema, tf } from "../../attributes.js";
+import { schema, tf } from "../../provider-sdk/attributes.js";
 import { hashicupsProviderBuilder } from "../builder.js";
-import { Unknown } from "../../codec.js";
+import { Unknown } from "../../provider-sdk/codec.js";
 
 export const hashicupsOrder = hashicupsProviderBuilder.resource({
   schema: schema({

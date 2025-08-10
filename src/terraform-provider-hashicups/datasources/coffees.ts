@@ -1,7 +1,7 @@
 import { Effect } from "effect";
-import { schema, tf, withDescription } from "../../attributes.js";
+import { schema, tf, withDescription } from "../../provider-sdk/attributes.js";
 import { hashicupsProviderBuilder } from "../builder.js";
-import { encode } from "../../codec.js";
+import { encode } from "../../provider-sdk/codec.js";
 import { coffeeAttributes } from "./coffeeAttributes.js";
 
 export const hashicupsCoffeesDataSource = hashicupsProviderBuilder.datasource({
