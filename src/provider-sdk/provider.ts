@@ -1,16 +1,13 @@
-import type { Provider as TerraformProvider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import type { ConfigFor, Schema } from "./attributes.js";
 import { toTerraformSchema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode, Unknown } from "./codec.js";
-import type { ServiceImpl } from "@connectrpc/connect";
 import {
   createDataSource,
   type DataSource,
   type IDataSource,
 } from "./datasource.js";
 import { createResource, type IResource, type Resource } from "./resource.js";
-import type { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { serveProvider } from "./serve.js";
 import {
   DiagnosticError,
@@ -58,9 +55,6 @@ export interface ProviderForResources<TState> {
   state: TState;
   providerInstanceId: number;
 }
-
-export type BuiltProvider = Partial<ServiceImpl<typeof TerraformProvider>> &
-  ServiceImpl<typeof GRPCController>;
 
 class ProviderBuilder<
   TProviderSchema extends Schema,

@@ -1,4 +1,4 @@
-import type { ConnectRouter } from "@connectrpc/connect";
+import type { ConnectRouter, ServiceImpl } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import http from "node:http2";
 import forge from "node-forge";
@@ -9,7 +9,9 @@ import { GRPCStdio } from "../gen/plugin/grpc_stdio_connect.js";
 import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "../hashicorp-plugin/certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
-import type { BuiltProvider } from "./provider.js";
+
+type BuiltProvider = Partial<ServiceImpl<typeof Provider>> &
+  ServiceImpl<typeof GRPCController>;
 
 export const serveProvider = (provider: BuiltProvider) => {
   const routes = (router: ConnectRouter) =>
