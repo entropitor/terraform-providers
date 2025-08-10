@@ -324,6 +324,29 @@ const routes = (router: ConnectRouter) =>
           upgradedState: { json: req.rawState!.json },
         };
       },
+      async readResource(req) {
+        console.error("[ERROR] readResource", providerInstanceId);
+        try {
+          const currentState = decode(req.currentState!.msgpack);
+          return {
+            newState: {
+              msgpack: encode({
+                ...currentState,
+                ...(await client!.getOrder(currentState.id)),
+              }),
+            },
+          };
+        } catch (error) {
+          return {
+            diagnostics: [
+              {
+                severity: Diagnostic_Severity.ERROR,
+                detail: error?.toString() ?? "Unknown error",
+              },
+            ],
+          };
+        }
+      },
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
