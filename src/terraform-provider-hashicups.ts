@@ -275,18 +275,18 @@ const routes = (router: ConnectRouter) =>
 
         const proposed = decode(req.proposedNewState?.msgpack);
 
-        proposed.id = new Unknown();
-        proposed.last_updated = new Unknown();
+        proposed.id ??= new Unknown();
+        proposed.last_updated ??= new Unknown();
         proposed.items.forEach((item: any) => {
-          item.coffee.collection = new Unknown();
-          item.coffee.color = new Unknown();
-          item.coffee.description = new Unknown();
-          item.coffee.image = new Unknown();
-          item.coffee.ingredients = new Unknown();
-          item.coffee.name = new Unknown();
-          item.coffee.origin = new Unknown();
-          item.coffee.price = new Unknown();
-          item.coffee.teaser = new Unknown();
+          item.coffee.collection ??= new Unknown();
+          item.coffee.color ??= new Unknown();
+          item.coffee.description ??= new Unknown();
+          item.coffee.image ??= new Unknown();
+          item.coffee.ingredients ??= new Unknown();
+          item.coffee.name ??= new Unknown();
+          item.coffee.origin ??= new Unknown();
+          item.coffee.price ??= new Unknown();
+          item.coffee.teaser ??= new Unknown();
         });
 
         return {
