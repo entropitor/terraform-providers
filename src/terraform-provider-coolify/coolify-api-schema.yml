@@ -5423,6 +5423,23 @@ components:
       type: object
     Server:
       description: "Server model"
+      required:
+        - id
+        - uuid
+        - name
+        - description
+        - ip
+        - user
+        - port
+        - proxy
+        - proxy_type
+        - high_disk_usage_notification_sent
+        - unreachable_notification_sent
+        - unreachable_count
+        - validation_logs
+        - log_drain_notification_sent
+        - swarm_cluster
+        - settings
       properties:
         id:
           type: integer

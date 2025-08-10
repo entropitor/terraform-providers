@@ -1551,39 +1551,39 @@ export interface components {
     /** @description Server model */
     Server: {
       /** @description The server ID. */
-      id?: number;
+      id: number;
       /** @description The server UUID. */
-      uuid?: string;
+      uuid: string;
       /** @description The server name. */
-      name?: string;
+      name: string;
       /** @description The server description. */
-      description?: string;
+      description: string;
       /** @description The IP address. */
-      ip?: string;
+      ip: string;
       /** @description The user. */
-      user?: string;
+      user: string;
       /** @description The port number. */
-      port?: number;
+      port: number;
       /** @description The proxy configuration. */
-      proxy?: Record<string, never>;
+      proxy: Record<string, never>;
       /**
        * @description The proxy type.
        * @enum {string}
        */
-      proxy_type?: "traefik" | "caddy" | "none";
+      proxy_type: "traefik" | "caddy" | "none";
       /** @description The flag to indicate if the high disk usage notification has been sent. */
-      high_disk_usage_notification_sent?: boolean;
+      high_disk_usage_notification_sent: boolean;
       /** @description The flag to indicate if the unreachable notification has been sent. */
-      unreachable_notification_sent?: boolean;
+      unreachable_notification_sent: boolean;
       /** @description The unreachable count for your server. */
-      unreachable_count?: number;
+      unreachable_count: number;
       /** @description The validation logs. */
-      validation_logs?: string;
+      validation_logs: string;
       /** @description The flag to indicate if the log drain notification has been sent. */
-      log_drain_notification_sent?: boolean;
+      log_drain_notification_sent: boolean;
       /** @description The swarm cluster configuration. */
-      swarm_cluster?: string;
-      settings?: components["schemas"]["ServerSetting"];
+      swarm_cluster: string;
+      settings: components["schemas"]["ServerSetting"];
     };
     /** @description Server Settings model */
     ServerSetting: {

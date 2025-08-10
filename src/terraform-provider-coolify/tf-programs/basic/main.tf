@@ -21,3 +21,11 @@ resource "coolify_project" "main" {
   name        = "main"
   description = "My main project - Managed by Terraform"
 }
+
+data "coolify_server" "localhost" {
+  uuid = "d8okw4oc0sgs4ocogwo0g04c"
+}
+
+output "server" {
+  value = data.coolify_server.localhost
+}

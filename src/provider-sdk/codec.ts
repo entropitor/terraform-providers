@@ -44,6 +44,7 @@ const mapAttribute = (value: any, attribute: Attribute): unknown => {
   switch (attribute.type) {
     case "string":
     case "number":
+    case "boolean":
       return value;
     case "object":
       return mapObject(value, attribute.fields);

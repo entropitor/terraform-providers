@@ -11,6 +11,7 @@ import type { ForceTypescriptComputation } from "../utils/ForceTypescriptComputa
 type AttributeType =
   | { type: "string" }
   | { type: "number" }
+  | { type: "boolean" }
   | { type: "list"; fields: Record<string, Attribute> }
   | { type: "object"; fields: Record<string, Attribute> };
 
@@ -45,7 +46,7 @@ abstract class BaseAttribute implements Pipeable {
 }
 
 class PrimitiveAttribute<
-  TType extends "string" | "number",
+  TType extends "string" | "number" | "boolean",
   TPresence extends Presence,
 > extends BaseAttribute {
   constructor(
@@ -93,6 +94,8 @@ const typeFrom = (
   attr: Attribute,
 ): Pick<PartialMessage<Schema_Attribute>, "type" | "nestedType"> => {
   switch (attr.type) {
+    case "boolean":
+      return { type: Buffer.from('"bool"') };
     case "string":
       return { type: Buffer.from('"string"') };
     case "number":
@@ -178,6 +181,7 @@ class SchemaInternal<TFields extends Fields> implements Pipeable {
 
 export const tf = {
   optional: {
+    boolean: () => new PrimitiveAttribute("boolean", "optional"),
     string: () => new PrimitiveAttribute("string", "optional"),
     number: () => new PrimitiveAttribute("number", "optional"),
     object: <TFields extends Fields>(fields: TFields) =>
@@ -186,6 +190,7 @@ export const tf = {
       new CompositeAttribute("list", "optional", fields),
   },
   required: {
+    boolean: () => new PrimitiveAttribute("boolean", "required"),
     string: () => new PrimitiveAttribute("string", "required"),
     number: () => new PrimitiveAttribute("number", "required"),
     object: <TFields extends Fields>(fields: TFields) =>
@@ -194,6 +199,7 @@ export const tf = {
       new CompositeAttribute("list", "required", fields),
   },
   computed: {
+    boolean: () => new PrimitiveAttribute("boolean", "computed"),
     string: () => new PrimitiveAttribute("string", "computed"),
     number: () => new PrimitiveAttribute("number", "computed"),
     object: <TFields extends Fields>(fields: TFields) =>
@@ -220,19 +226,21 @@ type ConfigForAttribute<TAttribute extends Attribute> =
       ? string
       : TAttribute extends { type: "number" }
         ? number
-        : TAttribute extends { type: "object" }
-          ? {
-              [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends "computed"
-                ? never
-                : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
-            }
-          : TAttribute extends { type: "list" }
-            ? Array<{
+        : TAttribute extends { type: "boolean" }
+          ? boolean
+          : TAttribute extends { type: "object" }
+            ? {
                 [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends "computed"
                   ? never
                   : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
-              }>
-            : never
+              }
+            : TAttribute extends { type: "list" }
+              ? Array<{
+                  [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends "computed"
+                    ? never
+                    : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
+                }>
+              : never
   >;
 
 export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<{

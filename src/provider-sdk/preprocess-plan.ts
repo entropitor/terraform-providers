@@ -31,6 +31,7 @@ const preprocessAttribute = (
   switch (attribute.type) {
     case "string":
     case "number":
+    case "boolean":
       return proposed;
     case "object":
       return preprocessObject(prior, proposed, attribute.fields);
