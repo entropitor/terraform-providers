@@ -22,8 +22,9 @@ resource "coolify_project" "main" {
   description = "My main project - Managed by Terraform"
 }
 
+data "coolify_servers" "all" {}
 data "coolify_server" "localhost" {
-  uuid = "d8okw4oc0sgs4ocogwo0g04c"
+  uuid = data.coolify_servers.all.servers[0].uuid
 }
 
 output "server" {
