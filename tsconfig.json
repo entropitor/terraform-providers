@@ -1,0 +1,19 @@
+{
+  "extends": "@tsconfig/strictest/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/",
+    "noEmit": true,
+    "target": "es2023",
+    "lib": ["es2023", "esnext.disposable", "ESNext.Promise"],
+    "moduleResolution": "NodeNext",
+    "noPropertyAccessFromIndexSignature": false,
+    "strictNullChecks": true,
+    "composite": true,
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "NodeNext",
+    "verbatimModuleSyntax": true,
+    "declaration": true,
+    "declarationMap": true
+  }
+}

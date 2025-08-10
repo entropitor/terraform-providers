@@ -1,0 +1,21 @@
+{
+  "name": "tfts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@bufbuild/buf": "^1.46.0",
+    "@bufbuild/protobuf": "^1.10.0",
+    "@connectrpc/connect": "^1.6.1",
+    "@connectrpc/connect-node": "^1.6.1",
+    "typescript": "^5.6.3"
+  },
+  "scripts": {
+    "generate": "buf generate"
+  },
+  "devDependencies": {
+    "@bufbuild/protoc-gen-es": "^1.10.0",
+    "@connectrpc/protoc-gen-connect-es": "^1.6.1",
+    "@tsconfig/strictest": "^2.0.5",
+    "@types/node": "^22.8.7"
+  }
+}
