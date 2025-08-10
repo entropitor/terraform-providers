@@ -115,6 +115,23 @@ class HashiCupsApiClient {
     const json: any = await response.json();
     return json;
   }
+
+  async updateOrder(id: number, data: unknown) {
+    const response = await fetch(new URL(`/orders/${id}`, this.host), {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: this.token,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Could not update order: ${await response.text()}`);
+    }
+
+    const json: any = await response.json();
+    return json;
+  }
 }
 
 let client: HashiCupsApiClient | null = null;
@@ -316,16 +333,33 @@ const routes = (router: ConnectRouter) =>
         console.error("[ERROR] applyResourceChange", providerInstanceId);
 
         const config = decode(req.config?.msgpack);
+        const prior = decode(req.priorState?.msgpack);
+
         try {
-          const order = await client!.createOrder(config.items);
-          return {
-            newState: {
-              msgpack: encode({
-                ...order,
-                last_updated: new Date().toISOString(),
-              }),
-            },
-          };
+          if (prior == null) {
+            const order = await client!.createOrder(config.items);
+            return {
+              newState: {
+                msgpack: encode({
+                  ...order,
+                  last_updated: new Date().toISOString(),
+                }),
+              },
+            };
+          } else if (config != null) {
+            await client!.updateOrder(prior.id, config.items);
+            const order = await client!.getOrder(prior.id);
+            return {
+              newState: {
+                msgpack: encode({
+                  ...order,
+                  last_updated: new Date().toISOString(),
+                }),
+              },
+            };
+          } else {
+            throw new Error("Delete not supported yet");
+          }
         } catch (error) {
           return {
             diagnostics: [
