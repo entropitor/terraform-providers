@@ -1,20 +1,30 @@
 import { unreachable } from "../utils/unreachable.js";
-import type { Attribute, Schema, StateFor } from "./attributes.js";
+import {
+  UnionAttribute,
+  type Attribute,
+  type Fields,
+  type Schema,
+  type StateFor,
+} from "./attributes.js";
 import { Unknown } from "./codec.js";
 
-const preprocessObject = (
-  prior: any,
-  proposed: any,
-  fields: Record<string, Attribute>,
-) => {
+const preprocessObject = (prior: any, proposed: any, fields: Fields) => {
   if (proposed == null || proposed instanceof Unknown) {
     return proposed;
   }
   return Object.fromEntries(
-    Object.entries(fields).map(([fieldName, field]) => {
+    Object.entries(fields).flatMap(([fieldName, field]) => {
+      if (field instanceof UnionAttribute) {
+        return field.alternatives.flatMap(
+          (alternative: UnionAttribute["alternatives"][number]) =>
+            Object.entries(preprocessObject(prior, proposed, alternative)),
+        );
+      }
       return [
-        fieldName,
-        preprocessAttribute(prior?.[fieldName], proposed?.[fieldName], field),
+        [
+          fieldName,
+          preprocessAttribute(prior?.[fieldName], proposed?.[fieldName], field),
+        ],
       ];
     }),
   );

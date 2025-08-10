@@ -6,6 +6,7 @@ import {
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { PartialMessage } from "@bufbuild/protobuf";
 
+export type DiagnosticPath = Array<AttributePath_Step["selector"]>;
 export const diagnosticsPath = {
   attribute: (name: string) =>
     ({ case: "attributeName", value: name }) as const,
@@ -18,36 +19,35 @@ export const diagnosticsPath = {
     }) as const,
 };
 
+export const pathFromDiagnostic = (
+  diagnostic: DiagnosticMessage,
+): DiagnosticPath | undefined =>
+  diagnostic.attribute?.steps?.map((step) => step.selector!);
+
+export type DiagnosticMessage = PartialMessage<Diagnostic>;
+
 export class DiagnosticError {
   readonly _tag = "DiagnosticError";
 
-  constructor(readonly diagnostic: PartialMessage<Diagnostic>) {}
+  constructor(readonly diagnostic: DiagnosticMessage) {}
 }
 
 export class Diagnostics extends Effect.Tag("Diagnostics")<
   Diagnostics,
   {
-    diagnostics: PartialMessage<Diagnostic>[];
-    add(diagnostic: PartialMessage<Diagnostic>): void;
-    warn(
-      steps: Array<AttributePath_Step["selector"]>,
-      summary: string,
-      detail?: string,
-    ): void;
-    error(
-      steps: Array<AttributePath_Step["selector"]>,
-      summary: string,
-      detail?: string,
-    ): void;
+    diagnostics: DiagnosticMessage[];
+    add(diagnostic: DiagnosticMessage): void;
+    warn(steps: DiagnosticPath, summary: string, detail?: string): void;
+    error(steps: DiagnosticPath, summary: string, detail?: string): void;
     crit(
-      steps: Array<AttributePath_Step["selector"]>,
+      steps: DiagnosticPath,
       summary: string,
       detail?: string,
     ): Effect.Effect<never, DiagnosticError, never>;
   }
 >() {}
 
-const provideDiagnostics = () =>
+export const provideDiagnostics = () =>
   Effect.provideService(Diagnostics, {
     diagnostics: [],
     add(diagnostic) {
@@ -92,7 +92,7 @@ export const withDiagnostics =
   <A extends {} | void, E extends { _tag: string }, R>(
     effect: Effect.Effect<A, E | DiagnosticError, R>,
   ): Effect.Effect<
-    (A | {}) & { diagnostics: PartialMessage<Diagnostic>[] },
+    (A | {}) & { diagnostics: DiagnosticMessage[] },
     E,
     Exclude<R, Diagnostics>
   > =>

@@ -12,6 +12,7 @@ import {
   withDiagnostics,
   type Diagnostics,
 } from "./diagnostics.js";
+import { preValidateSchema } from "./pre-validate.js";
 
 interface ReadRequest<TDataSourceSchema extends Schema> {
   config: ConfigFor<TDataSourceSchema>;
@@ -66,19 +67,20 @@ export const createDataSource = <TDataSourceSchema extends Schema, TState>(
         provider.providerInstanceId,
       );
 
-      if (datasource.validate === undefined) {
-        return {};
-      }
-
       const config: DataSourceConfig = decode(req.config!.msgpack);
       return await Effect.runPromise(
-        datasource.validate({ config }, provider.state).pipe(
-          Effect.map(() => ({})),
-          withDiagnostics(),
-        ),
-        {
-          signal: ctx.signal,
-        },
+        Effect.gen(function* () {
+          yield* preValidateSchema(config, datasource.schema);
+
+          if (datasource.validate === undefined) {
+            return {};
+          }
+
+          return yield* datasource
+            .validate({ config }, provider.state)
+            .pipe(Effect.map(() => ({})));
+        }).pipe(withDiagnostics()),
+        { signal: ctx.signal },
       );
     },
     async readDataSource(req: ReadDataSource_Request, ctx: HandlerContext) {

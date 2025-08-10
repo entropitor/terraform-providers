@@ -3,7 +3,12 @@ import {
   encode as msgpackEncode,
   decode as msgpackDecode,
 } from "@msgpack/msgpack";
-import type { Attribute, Schema } from "./attributes.js";
+import {
+  UnionAttribute,
+  type Attribute,
+  type Fields,
+  type Schema,
+} from "./attributes.js";
 import { unreachable } from "../utils/unreachable.js";
 
 export class Unknown {
@@ -30,13 +35,19 @@ export const encode = (value: unknown) =>
 export const decode = (value: unknown) =>
   msgpackDecode(value, { extensionCodec }) as any;
 
-const mapObject = (value: any, fields: Record<string, Attribute>) => {
+const mapObject = (value: any, fields: Fields) => {
   if (value == null || value instanceof Unknown) {
     return value;
   }
   return Object.fromEntries(
-    Object.entries(fields).map(([fieldName, field]) => {
-      return [fieldName, mapAttribute(value[fieldName], field)];
+    Object.entries(fields).flatMap(([fieldName, field]) => {
+      if (field instanceof UnionAttribute) {
+        return field.alternatives.flatMap(
+          (alternative: UnionAttribute["alternatives"][number]) =>
+            Object.entries(mapObject(value, alternative)),
+        );
+      }
+      return [[fieldName, mapAttribute(value[fieldName], field)]];
     }),
   );
 };

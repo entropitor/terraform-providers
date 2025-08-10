@@ -19,6 +19,7 @@ import {
 } from "./diagnostics.js";
 import { preprocessPlan } from "./preprocess-plan.js";
 import type { PartialMessage } from "@bufbuild/protobuf";
+import { preValidateSchema } from "./pre-validate.js";
 
 interface PlanRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
@@ -143,12 +144,16 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       );
       const config: ResourceConfig = decode(req.config!.msgpack);
 
-      if (resource.validate == null) {
-        return {};
-      }
-
       return await Effect.runPromise(
-        resource.validate(config, provider.state).pipe(withDiagnostics()),
+        Effect.gen(function* () {
+          yield* preValidateSchema(config, resource.schema);
+
+          if (resource.validate == null) {
+            return {};
+          }
+
+          return yield* resource.validate(config, provider.state);
+        }).pipe(withDiagnostics()),
         { signal: ctx.signal },
       );
     },

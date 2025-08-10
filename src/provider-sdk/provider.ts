@@ -17,6 +17,7 @@ import {
   withDiagnostics,
   type Diagnostics,
 } from "./diagnostics.js";
+import { preValidateSchema } from "./pre-validate.js";
 
 interface ValidateRequest<TProviderSchema extends Schema> {
   config: ConfigFor<TProviderSchema>;
@@ -140,10 +141,6 @@ class ProviderBuilder<
 
       async validateProviderConfig(req, ctx) {
         console.error("[ERROR] validateProviderConfig", providerInstanceId);
-        if (provider.validate == null) {
-          return {};
-        }
-
         const config: ProviderConfig = decode(req.config!.msgpack);
 
         // This happens during terraform tests, not sure if it happens in normal usage
@@ -152,10 +149,17 @@ class ProviderBuilder<
         }
 
         return await Effect.runPromise(
-          provider.validate({ config }).pipe(
-            Effect.map(() => ({})),
-            withDiagnostics(),
-          ),
+          Effect.gen(function* () {
+            yield* preValidateSchema(config, provider.schema);
+
+            if (provider.validate == null) {
+              return {};
+            }
+
+            return yield* provider
+              .validate({ config })
+              .pipe(Effect.map(() => ({})));
+          }).pipe(withDiagnostics()),
           { signal: ctx.signal },
         );
       },

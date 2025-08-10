@@ -11,9 +11,10 @@ export const coolifyService = coolifyProviderBuilder.resource({
     name: tf.required.string(),
     description: tf.optional.string(),
     project_uuid: tf.required.string(),
-    // TODO: support one-of, using runtime validation and type-safety
-    environment_name: tf.optional.string(),
-    environment_uuid: tf.optional.string(),
+    environment: tf.union(
+      { environment_name: tf.required.string() },
+      { environment_uuid: tf.required.string() },
+    ),
     server_uuid: tf.required.string(),
     destination_uuid: tf.optional.string(),
     instant_deploy: tf.optional.boolean(),
