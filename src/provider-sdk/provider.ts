@@ -108,12 +108,6 @@ class ProviderBuilder<
     const provider = this.provider;
 
     return serveProvider({
-      shutdown() {
-        console.error("[ERROR] Shutdown", providerInstanceId);
-        console.error("[ERROR]");
-        process.exit(0);
-      },
-
       getProviderSchema() {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {

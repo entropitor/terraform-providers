@@ -1,4 +1,4 @@
-import { md, pki } from "node-forge";
+import forge from "node-forge";
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -7,7 +7,7 @@ const ONE_HOUR = 60 * ONE_MINUTE;
 export const generateIdentity = (nbHours = 1) => {
   const host = "localhost";
 
-  const cert = pki.createCertificate();
+  const cert = forge.pki.createCertificate();
 
   // NOTE: serialNumber is the hex encoded value of an ASN.1 INTEGER.
   // Conforming CAs should ensure serialNumber is:
@@ -62,11 +62,11 @@ export const generateIdentity = (nbHours = 1) => {
   //     let pkey = PKey::from_ec_key(ec_key)?;
   //     certificate.sign(&pkey, MessageDigest::sha384())?;
 
-  const keys = pki.rsa.generateKeyPair(2048);
+  const keys = forge.pki.rsa.generateKeyPair(2048);
   // const keys = pki.ed25519.generateKeyPair();
   cert.publicKey = keys.publicKey;
 
-  cert.sign(keys.privateKey, md.sha384.create());
+  cert.sign(keys.privateKey, forge.md.sha384.create());
   // cert.sign(keys.privateKey);
 
   return { cert, keys };
