@@ -56,6 +56,9 @@ const routes = (router: ConnectRouter) =>
               ],
             },
           },
+          dataSourceSchemas: {
+            hashicups_coffees: { block: {} },
+          },
         };
       },
     })
