@@ -4,6 +4,7 @@ import { decode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import {
   Diagnostic_Severity,
+  PlanResourceChange_Response,
   type ApplyResourceChange_Request,
   type ImportResourceState_Request,
   type ImportResourceState_Response,
@@ -20,6 +21,10 @@ import {
 import { preprocessPlan } from "./preprocess-plan.js";
 import type { PartialMessage } from "@bufbuild/protobuf";
 import { preValidateSchema } from "./pre-validate.js";
+import {
+  withTrackedReplacements,
+  type RequiresReplacementTracker,
+} from "./require-replacement.js";
 
 interface PlanRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
@@ -76,7 +81,7 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
   ) => Effect.Effect<
     NoInfer<PlanResponse<TResourceSchema>>,
     DiagnosticError,
-    Diagnostics
+    Diagnostics | RequiresReplacementTracker
   >;
 
   read: (
@@ -160,7 +165,7 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     async planResourceChange(
       req: PlanResourceChange_Request,
       ctx: HandlerContext,
-    ) {
+    ): Promise<PartialMessage<PlanResourceChange_Response>> {
       console.error("[ERROR] planResourceChange", provider.providerInstanceId);
 
       const priorState: ResourceState = decode(req.priorState!.msgpack);
@@ -183,7 +188,7 @@ export const createResource = <TResourceSchema extends Schema, TState>(
         req.proposedNewState?.msgpack.every(
           (byte, index) => byte == req.priorState?.msgpack[index],
         );
-      return await Effect.runPromise(
+      const [response, requiresReplace] = await Effect.runPromise(
         resource
           .plan(
             {
@@ -204,9 +209,15 @@ export const createResource = <TResourceSchema extends Schema, TState>(
               },
             })),
             withDiagnostics(),
+            withTrackedReplacements(),
           ),
         { signal: ctx.signal },
       );
+
+      return {
+        ...response,
+        requiresReplace,
+      };
     },
 
     async applyResourceChange(

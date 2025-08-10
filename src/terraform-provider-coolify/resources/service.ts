@@ -1,8 +1,15 @@
 import { Effect } from "effect";
 import { schema, tf } from "../../provider-sdk/attributes.js";
 import { coolifyProviderBuilder } from "../builder.js";
-import { Diagnostics } from "../../provider-sdk/diagnostics.js";
+import {
+  Diagnostics,
+  diagnosticsPath,
+} from "../../provider-sdk/diagnostics.js";
 import { effectify } from "../effectify.js";
+import {
+  attributePath,
+  RequiresReplacementTracker,
+} from "../../provider-sdk/require-replacement.js";
 
 export const coolifyService = coolifyProviderBuilder.resource({
   schema: schema({
@@ -20,6 +27,19 @@ export const coolifyService = coolifyProviderBuilder.resource({
     instant_deploy: tf.optional.boolean(),
     // docker_compose_raw: tf.optional.string(), optional-computed
   }),
+
+  plan({ proposedNewState, priorState }) {
+    return Effect.gen(function* () {
+      console.error("[ERROR] priorState", priorState);
+      if (priorState != null && proposedNewState.type !== priorState.type) {
+        yield* RequiresReplacementTracker.add([
+          attributePath.attribute("type"),
+        ]);
+        return { plannedState: proposedNewState };
+      }
+      return { plannedState: proposedNewState };
+    });
+  },
 
   read({ savedState }, client) {
     return effectify(() =>
