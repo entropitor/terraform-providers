@@ -7,9 +7,9 @@ import { Diagnostics, diagnosticsPath } from "../provider-sdk/diagnostics.js";
 export const hashicupsProviderBuilder = providerBuilder({
   name: "hashicups",
   schema: schema({
-    host: tf.optional.string(),
-    username: tf.optional.string(),
-    password: tf.optional.string(),
+    host: tf.required.string(),
+    username: tf.required.string(),
+    password: tf.required.string(),
   }),
 
   configure({ config }) {

@@ -21,7 +21,6 @@ export const coolifyProviderBuilder = providerBuilder({
         },
       });
       try {
-        yield* Effect.promise(() => client.GET("/version"));
         return {
           $state: client,
         };

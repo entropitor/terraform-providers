@@ -15,6 +15,9 @@
     "module": "NodeNext",
     "verbatimModuleSyntax": true,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+
+    // Doesn't work well currently with the providers themselves
+    "exactOptionalPropertyTypes": false
   }
 }

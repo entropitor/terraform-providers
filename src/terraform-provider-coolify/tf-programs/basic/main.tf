@@ -8,11 +8,16 @@ terraform {
 }
 
 provider "coolify" {
-  base_url = "http://localhost:3000"
+  base_url = "http://localhost:8000"
   token    = var.token
 }
 
 variable "token" {
   type        = string
   description = "Coolify API token"
+}
+
+resource "coolify_project" "main" {
+  name        = "main"
+  description = "My main project - Managed by Terraform"
 }

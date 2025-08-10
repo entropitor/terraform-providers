@@ -154,7 +154,14 @@ class ProviderBuilder<
 
         const config: ProviderConfig = decode(req.config!.msgpack);
         const result = await Effect.runPromise(
-          provider.configure({ config }).pipe(withDiagnostics()),
+          provider.configure({ config }).pipe(
+            withDiagnostics(),
+            Effect.tapDefect((defect) =>
+              Effect.gen(function* () {
+                console.error("[ERROR] configureProvider defect", defect);
+              }),
+            ),
+          ),
           { signal: ctx.signal },
         );
         // @ts-expect-error: We don't know the type of result

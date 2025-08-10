@@ -238,11 +238,19 @@ type ConfigForAttribute<TAttribute extends Attribute> =
 export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<{
   [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends "computed"
     ? never
-    : TField]: ConfigForAttribute<TSchema["attributes"][TField]>;
+    : TField]: TSchema["attributes"][TField]["presence"] extends "optional"
+    ? undefined | ConfigForAttribute<TSchema["attributes"][TField]>
+    : ConfigForAttribute<TSchema["attributes"][TField]>;
 }>;
 
-export type StateFor<TSchema extends Schema> = ForceTypescriptComputation<{
-  [TField in keyof TSchema["attributes"]]: ConfigForAttribute<
-    TSchema["attributes"][TField]
-  >;
-}>;
+export type StateFor<TSchema extends Schema> = ForceTypescriptComputation<
+  {
+    [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends "optional"
+      ? TField
+      : never]+?: undefined | ConfigForAttribute<TSchema["attributes"][TField]>;
+  } & {
+    [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends "optional"
+      ? never
+      : TField]: ConfigForAttribute<TSchema["attributes"][TField]>;
+  }
+>;

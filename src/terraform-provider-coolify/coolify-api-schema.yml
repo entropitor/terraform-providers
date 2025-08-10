@@ -1,4 +1,5 @@
 # Source: https://raw.githubusercontent.com/coollabsio/coolify/2934d4a2590a01841f4f1577211603ab6c8ea3c1/openapi.yaml
+# Adapted because required properties were not set
 openapi: 3.1.0
 info:
   title: Coolify
@@ -3423,6 +3424,7 @@ paths:
           content:
             application/json:
               schema:
+                required: ["uuid"]
                 properties:
                   uuid:
                     {
@@ -3533,6 +3535,7 @@ paths:
           content:
             application/json:
               schema:
+                required: ["uuid", "name"]
                 properties:
                   uuid: { type: string, example: og888os }
                   name: { type: string, example: "Project Name" }
@@ -5402,6 +5405,7 @@ components:
       type: object
     Project:
       description: "Project model"
+      required: ["uuid", "name"]
       properties:
         id:
           type: integer
