@@ -132,6 +132,18 @@ class HashiCupsApiClient {
     const json: any = await response.json();
     return json;
   }
+
+  async deleteOrder(id: number) {
+    const response = await fetch(new URL(`/orders/${id}`, this.host), {
+      method: "DELETE",
+      headers: {
+        Authorization: this.token,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Could not delete order: ${await response.text()}`);
+    }
+  }
 }
 
 let client: HashiCupsApiClient | null = null;
@@ -316,7 +328,7 @@ const routes = (router: ConnectRouter) =>
             });
           }
 
-          if (prior.id) {
+          if (prior?.id) {
             proposed.id = prior.id;
           }
           proposed.items.forEach((item: any, index: number) => {
@@ -369,7 +381,10 @@ const routes = (router: ConnectRouter) =>
               },
             };
           } else {
-            throw new Error("Delete not supported yet");
+            await client!.deleteOrder(prior.id);
+            return {
+              newState: { msgpack: encode(null) },
+            };
           }
         } catch (error) {
           return {
