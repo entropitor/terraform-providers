@@ -11,6 +11,7 @@ import type {
   ValidateResourceConfig_Response,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
+import { Diagnostics, withDiagnostics } from "./diagnostics.js";
 
 interface PlanRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
@@ -46,7 +47,7 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
   validate: (
     config: NoInfer<ConfigFor<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<PartialMessage<ValidateResourceConfig_Response>>;
+  ) => Effect.Effect<void, never, Diagnostics>;
   plan: (
     req: NoInfer<PlanRequest<TResourceSchema>>,
     providerState: TProviderState,
@@ -87,9 +88,10 @@ export const resource = <TResourceSchema extends Schema, TState>(
         provider.providerInstanceId,
       );
       const config: ResourceConfig = decode(req.config!.msgpack);
-      return await Effect.runPromise(args.validate(config, provider.state), {
-        signal: ctx.signal,
-      });
+      return await Effect.runPromise(
+        args.validate(config, provider.state).pipe(withDiagnostics()),
+        { signal: ctx.signal },
+      );
     },
     async planResourceChange(
       req: PlanResourceChange_Request,
