@@ -224,6 +224,12 @@ const routes = (router: ConnectRouter) =>
         console.error("[ERROR] validateResourceConfig", providerInstanceId);
         return {};
       },
+      planResourceChange(req) {
+        console.error("[ERROR] planResourceChange", providerInstanceId);
+
+        return {
+          plannedState: req.proposedNewState!,
+        };
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
