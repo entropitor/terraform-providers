@@ -9,18 +9,19 @@ import { GRPCStdio } from "../gen/plugin/grpc_stdio_connect.js";
 import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
-import {
-  Diagnostic_Severity,
-  Schema_Attribute,
-  Schema_Object_NestingMode,
-} from "../gen/tfplugin6/tfplugin6.7_pb.js";
+import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import {
   decode as msgpackDecode,
   encode as msgpackEncode,
   ExtensionCodec,
 } from "@msgpack/msgpack";
-import type { PartialMessage } from "@bufbuild/protobuf";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
+import {
+  schema,
+  tf,
+  toTerraformSchema,
+  withDescription,
+} from "./attributes.js";
 
 class Unknown {
   _unknown = "UnknownValue";
@@ -50,67 +51,22 @@ const decode = (value: unknown) =>
 const providerInstanceId = Math.floor(Math.random() * 1000);
 
 let client: HashiCupsApiClient | null = null;
-const COFFEE_ATTRIBUTES: PartialMessage<Schema_Attribute>[] = [
-  {
-    name: "collection",
-    type: Buffer.from('"string"'),
-    computed: true,
-  },
-  {
-    name: "color",
-    type: Buffer.from('"string"'),
-    computed: true,
-  },
-  {
-    name: "description",
-    type: Buffer.from('"string"'),
-    computed: true,
-  },
-  {
-    name: "id",
-    type: Buffer.from('"number"'),
-    computed: true,
-  },
-  {
-    name: "image",
-    type: Buffer.from('"string"'),
-    computed: true,
-  },
-  {
-    name: "ingredients",
-    nestedType: {
-      nesting: Schema_Object_NestingMode.LIST,
-      attributes: [
-        {
-          name: "ingredient_id",
-          type: Buffer.from('"number"'),
-          computed: true,
-        },
-      ],
-    },
-    computed: true,
-  },
-  {
-    name: "name",
-    type: Buffer.from('"string"'),
-    computed: true,
-  },
-  {
-    name: "origin",
-    type: Buffer.from('"string"'),
-    computed: true,
-  },
-  {
-    name: "price",
-    type: Buffer.from('"number"'),
-    computed: true,
-  },
-  {
-    name: "teaser",
-    type: Buffer.from('"string"'),
-    computed: true,
-  },
-];
+
+const coffeeAttributes = {
+  collection: tf.computed.string(),
+  color: tf.computed.string(),
+  description: tf.computed.string(),
+  id: tf.computed.number(),
+  image: tf.computed.string(),
+  ingredients: tf.computed.list({
+    ingredient_id: tf.computed.number(),
+  }),
+  name: tf.computed.string(),
+  origin: tf.computed.string(),
+  price: tf.computed.number(),
+  teaser: tf.computed.string(),
+};
+
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
@@ -353,173 +309,51 @@ const routes = (router: ConnectRouter) =>
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
-          provider: {
-            block: {
-              attributes: [
-                {
-                  name: "host",
-                  type: Buffer.from('"string"'),
-                  optional: true,
-                },
-                {
-                  name: "username",
-                  type: Buffer.from('"string"'),
-                  optional: true,
-                },
-                {
-                  name: "password",
-                  type: Buffer.from('"string"'),
-                  optional: true,
-                },
-              ],
-            },
-          },
+          provider: schema({
+            host: tf.optional.string(),
+            username: tf.optional.string(),
+            password: tf.optional.string(),
+          }).toTerraformSchema(),
           resourceSchemas: {
-            hashicups_order: {
-              block: {
-                attributes: [
-                  {
-                    name: "id",
-                    type: Buffer.from('"number"'),
-                    computed: true,
-                  },
-                  {
-                    name: "last_updated",
-                    type: Buffer.from('"string"'),
-                    computed: true,
-                  },
-                  {
-                    name: "items",
-                    required: true,
-                    nestedType: {
-                      nesting: Schema_Object_NestingMode.LIST,
-                      attributes: [
-                        {
-                          name: "coffee",
-                          required: true,
-                          nestedType: {
-                            nesting: Schema_Object_NestingMode.SINGLE,
-                            attributes: [
-                              {
-                                name: "id",
-                                required: true,
-                                type: Buffer.from('"number"'),
-                              },
-                              {
-                                name: "collection",
-                                computed: true,
-                                type: Buffer.from('"string"'),
-                              },
-                              {
-                                name: "color",
-                                computed: true,
-                                type: Buffer.from('"string"'),
-                              },
-                              {
-                                name: "description",
-                                computed: true,
-                                type: Buffer.from('"string"'),
-                              },
-                              {
-                                name: "image",
-                                computed: true,
-                                type: Buffer.from('"string"'),
-                              },
-                              {
-                                name: "ingredients",
-                                computed: true,
-                                nestedType: {
-                                  nesting: Schema_Object_NestingMode.LIST,
-                                  attributes: [
-                                    {
-                                      name: "ingredient_id",
-                                      computed: true,
-                                      type: Buffer.from('"number"'),
-                                    },
-                                  ],
-                                },
-                              },
-                              {
-                                name: "name",
-                                computed: true,
-                                type: Buffer.from('"string"'),
-                              },
-                              {
-                                name: "origin",
-                                computed: true,
-                                type: Buffer.from('"string"'),
-                              },
-                              {
-                                name: "price",
-                                computed: true,
-                                type: Buffer.from('"number"'),
-                              },
-                              {
-                                name: "teaser",
-                                computed: true,
-                                type: Buffer.from('"string"'),
-                              },
-                            ],
-                          },
-                        },
-                        {
-                          name: "quantity",
-                          required: true,
-                          type: Buffer.from('"number"'),
-                        },
-                      ],
-                    },
-                  },
-                ],
-              },
-            },
+            hashicups_order: schema({
+              id: tf.computed.number(),
+              last_updated: tf.computed.string(),
+              items: tf.required.list({
+                coffee: tf.required.object({
+                  id: tf.required.number(),
+                  collection: tf.computed.string(),
+                  color: tf.computed.string(),
+                  description: tf.computed.string(),
+                  image: tf.computed.string(),
+                  ingredients: tf.computed.list({
+                    ingredient_id: tf.computed.number(),
+                  }),
+                  name: tf.computed.string(),
+                  origin: tf.computed.string(),
+
+                  price: tf.computed.number(),
+                  teaser: tf.computed.string(),
+                }),
+                quantity: tf.required.number(),
+              }),
+            }).toTerraformSchema(),
           },
           dataSourceSchemas: {
-            hashicups_coffees: {
-              block: {
-                description: "All the coffees our coffee shop has",
-                attributes: [
-                  {
-                    name: "coffees",
-                    computed: true,
-                    description: "The list of coffees",
-                    nestedType: {
-                      nesting: Schema_Object_NestingMode.LIST,
-                      attributes: COFFEE_ATTRIBUTES,
-                    },
-                  },
-                ],
-              },
-            },
-            hashicups_order: {
-              block: {
-                attributes: [
-                  { name: "id", type: Buffer.from('"number"'), required: true },
-                  {
-                    name: "items",
-                    computed: true,
-                    nestedType: {
-                      nesting: Schema_Object_NestingMode.LIST,
-                      attributes: [
-                        {
-                          name: "coffee",
-                          nestedType: {
-                            nesting: Schema_Object_NestingMode.SINGLE,
-                            attributes: COFFEE_ATTRIBUTES,
-                          },
-                          computed: true,
-                        },
-                        {
-                          name: "quantity",
-                          type: Buffer.from('"number"'),
-                          computed: true,
-                        },
-                      ],
-                    },
-                  },
-                ],
-              },
-            },
+            hashicups_coffees: schema({
+              coffees: tf.computed
+                .list(coffeeAttributes)
+                .pipe(withDescription("The list of coffees")),
+            }).pipe(
+              withDescription("All the coffees our coffee shop has"),
+              toTerraformSchema,
+            ),
+            hashicups_order: schema({
+              id: tf.required.number(),
+              items: tf.computed.list({
+                coffee: tf.computed.object(coffeeAttributes),
+                quantity: tf.computed.number(),
+              }),
+            }).toTerraformSchema(),
           },
         };
       },

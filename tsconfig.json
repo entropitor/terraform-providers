@@ -8,6 +8,7 @@
     "moduleResolution": "NodeNext",
     "noPropertyAccessFromIndexSignature": false,
     "strictNullChecks": true,
+    "strict": true,
     "composite": true,
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
