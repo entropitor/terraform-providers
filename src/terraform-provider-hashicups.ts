@@ -174,3 +174,6 @@ http
   .createSecureServer({ cert, key }, connectNodeAdapter({ routes }))
   .listen(PORT);
 console.log(`1|6|tcp|127.0.0.1:${PORT}|grpc|${serverCertificateString}`);
+
+process.on("uncaughtException", (error) => console.error(error));
+process.on("unhandledRejection", (error) => console.error(error));
