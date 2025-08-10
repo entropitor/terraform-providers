@@ -10,39 +10,10 @@ import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
-import {
-  decode as msgpackDecode,
-  encode as msgpackEncode,
-  ExtensionCodec,
-} from "@msgpack/msgpack";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 import { toTerraformSchema, type ConfigFor } from "./attributes.js";
 import { hashicupsProvider, providerSchema } from "./HashicupsProvider.js";
-
-class Unknown {
-  _unknown = "UnknownValue";
-
-  // @ts-expect-error unused
-  constructor(private readonly buffer?: Buffer | Uint8Array) {}
-}
-const extensionCodec = new ExtensionCodec();
-
-extensionCodec.register({
-  type: 0,
-  encode: (object) => {
-    if (object instanceof Unknown) {
-      return encode([]);
-    }
-    return null;
-  },
-  decode: (data) => {
-    return new Unknown(data);
-  },
-});
-
-const encode = (value: unknown) => msgpackEncode(value, { extensionCodec });
-const decode = (value: unknown) =>
-  msgpackDecode(value, { extensionCodec }) as any;
+import { encode, decode, Unknown } from "./codec.js";
 
 const providerInstanceId = Math.floor(Math.random() * 1000);
 
