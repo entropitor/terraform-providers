@@ -62,7 +62,7 @@ const provideDiagnostics = () =>
 
 export const withDiagnostics =
   () =>
-  <A extends {}, E, R>(effect: Effect.Effect<A, E, R>) =>
+  <A extends {} | void, E, R>(effect: Effect.Effect<A, E, R>) =>
     pipe(
       Effect.Do,
       Effect.bind("result", () => effect),

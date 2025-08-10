@@ -27,9 +27,6 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
     }),
   }),
 
-  validate() {
-    return Effect.sync(() => ({}));
-  },
 
   plan(
     { proposedNewState, priorState, proposedNewStateIsPriorState },

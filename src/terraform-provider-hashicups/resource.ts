@@ -8,7 +8,6 @@ import type {
   PlanResourceChange_Request,
   PlanResourceChange_Response,
   ValidateDataResourceConfig_Request,
-  ValidateResourceConfig_Response,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
 import { Diagnostics, withDiagnostics } from "./diagnostics.js";
@@ -44,7 +43,7 @@ interface DeleteResponse<_TResourceSchema extends Schema> {
 
 export interface IResource<TResourceSchema extends Schema, TProviderState> {
   schema: TResourceSchema;
-  validate: (
+  validate?: (
     config: NoInfer<ConfigFor<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<void, never, Diagnostics>;
@@ -88,6 +87,11 @@ export const resource = <TResourceSchema extends Schema, TState>(
         provider.providerInstanceId,
       );
       const config: ResourceConfig = decode(req.config!.msgpack);
+
+      if (args.validate == null) {
+        return {};
+      }
+
       return await Effect.runPromise(
         args.validate(config, provider.state).pipe(withDiagnostics()),
         { signal: ctx.signal },
