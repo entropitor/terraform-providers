@@ -290,44 +290,55 @@ const routes = (router: ConnectRouter) =>
       planResourceChange(req) {
         console.error("[ERROR] planResourceChange", providerInstanceId);
 
-        const proposed = decode(req.proposedNewState?.msgpack);
-        const prior = decode(req.priorState?.msgpack);
+        try {
+          const proposed = decode(req.proposedNewState?.msgpack);
+          const prior = decode(req.priorState?.msgpack);
 
-        const same =
-          req.proposedNewState?.msgpack.length ==
-            req.priorState?.msgpack.length &&
-          req.proposedNewState?.msgpack.every(
-            (byte, index) => byte == req.priorState?.msgpack[index],
-          );
-        if (!same) {
-          proposed.id = new Unknown();
-          proposed.last_updated = new Unknown();
-          proposed.items.forEach((item: any) => {
-            item.coffee.collection = new Unknown();
-            item.coffee.color = new Unknown();
-            item.coffee.description = new Unknown();
-            item.coffee.image = new Unknown();
-            item.coffee.ingredients = new Unknown();
-            item.coffee.name = new Unknown();
-            item.coffee.origin = new Unknown();
-            item.coffee.price = new Unknown();
-            item.coffee.teaser = new Unknown();
-          });
-        }
-
-        if (prior.id) {
-          proposed.id = prior.id;
-        }
-        proposed.items.forEach((item: any, index: number) => {
-          const priorItem = prior?.items?.[index];
-          if (item.coffee?.id === priorItem?.coffee?.id) {
-            item.coffee = priorItem.coffee;
+          const same =
+            req.proposedNewState?.msgpack.length ==
+              req.priorState?.msgpack.length &&
+            req.proposedNewState?.msgpack.every(
+              (byte, index) => byte == req.priorState?.msgpack[index],
+            );
+          if (!same) {
+            proposed.id = new Unknown();
+            proposed.last_updated = new Unknown();
+            proposed.items.forEach((item: any) => {
+              item.coffee.collection = new Unknown();
+              item.coffee.color = new Unknown();
+              item.coffee.description = new Unknown();
+              item.coffee.image = new Unknown();
+              item.coffee.ingredients = new Unknown();
+              item.coffee.name = new Unknown();
+              item.coffee.origin = new Unknown();
+              item.coffee.price = new Unknown();
+              item.coffee.teaser = new Unknown();
+            });
           }
-        });
 
-        return {
-          plannedState: { msgpack: encode(proposed) },
-        };
+          if (prior.id) {
+            proposed.id = prior.id;
+          }
+          proposed.items.forEach((item: any, index: number) => {
+            const priorItem = prior?.items?.[index];
+            if (item.coffee?.id === priorItem?.coffee?.id) {
+              item.coffee = priorItem.coffee;
+            }
+          });
+
+          return {
+            plannedState: { msgpack: encode(proposed) },
+          };
+        } catch (error) {
+          return {
+            diagnostics: [
+              {
+                severity: Diagnostic_Severity.ERROR,
+                detail: error?.toString() ?? "Unknown error",
+              },
+            ],
+          };
+        }
       },
       async applyResourceChange(req) {
         console.error("[ERROR] applyResourceChange", providerInstanceId);
