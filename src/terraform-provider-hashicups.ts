@@ -10,24 +10,14 @@ import { Provider } from "./gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "./certificate.js";
 import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
 
-const serverCapabilities = {
-  getProviderSchemaOptional: true,
-};
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
-      // getMetadata(_req) {
-      //   return {
-      //     serverCapabilities,
-      //     dataSources: [{ typeName: "hashicups_coffees" }],
-      //   };
-      // },
       getProviderSchema(_req) {
         return {
           provider: {
             block: {},
           },
-          // serverCapabilities,
         };
       },
     })
