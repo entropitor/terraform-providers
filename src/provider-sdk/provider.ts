@@ -12,6 +12,7 @@ import type { PartialMessage } from "@bufbuild/protobuf";
 import { datasource, type DataSource, type IDataSource } from "./datasource.js";
 import { resource, type IResource, type Resource } from "./resource.js";
 import type { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
+import { serveProvider } from "./serve.js";
 
 interface IProvider<
   TProviderSchema extends Schema,
@@ -69,10 +70,10 @@ class ProviderBuilder<
     return datasource;
   }
 
-  build(args: {
+  serve(args: {
     resources: Record<string, IResource<any, TInternalState>>;
     datasources: Record<string, IDataSource<any, TInternalState>>;
-  }): BuiltProvider {
+  }): void {
     const providerInstanceId = Math.floor(Math.random() * 1000);
     type ProviderConfig = ConfigFor<TProviderSchema>;
 
@@ -100,7 +101,7 @@ class ProviderBuilder<
 
     const provider = this.provider;
 
-    return {
+    return serveProvider({
       shutdown() {
         console.error("[ERROR] Shutdown", providerInstanceId);
         console.error("[ERROR]");
@@ -179,7 +180,7 @@ class ProviderBuilder<
           upgradedState: { json: req.rawState!.json },
         };
       },
-    };
+    });
   }
 }
 
