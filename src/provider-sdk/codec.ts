@@ -30,8 +30,7 @@ extensionCodec.register({
     return new Unknown(data);
   },
 });
-export const encode = (value: unknown) =>
-  msgpackEncode(value, { extensionCodec });
+const encode = (value: unknown) => msgpackEncode(value, { extensionCodec });
 export const decode = (value: unknown) =>
   msgpackDecode(value, { extensionCodec }) as any;
 

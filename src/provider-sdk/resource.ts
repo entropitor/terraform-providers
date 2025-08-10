@@ -1,6 +1,6 @@
 import type { ConfigFor, StateFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
-import { decode, encode, encodeWithSchema } from "./codec.js";
+import { decode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import {
   Diagnostic_Severity,
@@ -258,7 +258,9 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       console.error("[ERROR] readResource", provider.providerInstanceId);
       const savedState: ResourceState = decode(req.currentState!.msgpack);
       if (savedState == null) {
-        return { newState: { msgpack: encode(null) } };
+        return {
+          newState: { msgpack: encodeWithSchema(null, resource.schema) },
+        };
       }
       return await Effect.runPromise(
         resource.read({ savedState }, provider.state).pipe(
