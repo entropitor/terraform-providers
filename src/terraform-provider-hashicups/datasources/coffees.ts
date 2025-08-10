@@ -1,7 +1,6 @@
 import { Effect } from "effect";
 import { schema, tf, withDescription } from "../../provider-sdk/attributes.js";
 import { hashicupsProviderBuilder } from "../builder.js";
-import { encode } from "../../provider-sdk/codec.js";
 import { coffeeAttributes } from "./coffeeAttributes.js";
 
 export const hashicupsCoffeesDataSource = hashicupsProviderBuilder.datasource({
@@ -13,14 +12,10 @@ export const hashicupsCoffeesDataSource = hashicupsProviderBuilder.datasource({
   validate() {
     return Effect.sync(() => ({}));
   },
-  read(_config, client) {
+  read(_, client) {
     return Effect.promise(async () => {
       return {
-        state: {
-          msgpack: encode({
-            coffees: await client.coffees(),
-          }),
-        },
+        state: await client.coffees(),
       };
     });
   },
