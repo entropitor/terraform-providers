@@ -17,7 +17,7 @@ import {
 } from "@msgpack/msgpack";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 import { toTerraformSchema, type ConfigFor } from "./attributes.js";
-import { providerSchema } from "./HashicupsProvider.js";
+import { hashicupsProvider, providerSchema } from "./HashicupsProvider.js";
 
 class Unknown {
   _unknown = "UnknownValue";
@@ -48,7 +48,7 @@ const providerInstanceId = Math.floor(Math.random() * 1000);
 
 let client: HashiCupsApiClient | null = null;
 
-type ProviderConfig = ConfigFor<typeof providerSchema.provider>;
+type ProviderConfig = ConfigFor<typeof hashicupsProvider.providerSchema>;
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
@@ -291,7 +291,7 @@ const routes = (router: ConnectRouter) =>
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
-          provider: providerSchema.provider.toTerraformSchema(),
+          provider: hashicupsProvider.providerSchema.toTerraformSchema(),
           resourceSchemas: Object.fromEntries(
             Object.entries(providerSchema.resourceSchemas).map(
               ([name, schema]) => [name, toTerraformSchema(schema)],

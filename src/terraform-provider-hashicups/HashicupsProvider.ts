@@ -1,4 +1,5 @@
 import { schema, tf, withDescription } from "./attributes.js";
+import { provider } from "./provider.js";
 
 const coffeeAttributes = {
   collection: tf.computed.string(),
@@ -60,3 +61,5 @@ export const providerSchema = {
     }),
   },
 };
+
+export const hashicupsProvider = provider(providerSchema.provider);

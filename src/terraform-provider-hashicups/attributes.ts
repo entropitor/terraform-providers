@@ -133,8 +133,8 @@ export const attributeListFrom = (
   );
 };
 
-type Schema = {
-  attributes: Fields;
+export type Schema<TFields extends Fields = Fields> = {
+  attributes: TFields;
   description?: string;
 };
 export const toTerraformSchema = (
