@@ -1,11 +1,9 @@
-import type { ConfigureProvider_Response } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { Provider as TerraformProvider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import type { ConfigFor, Schema } from "./attributes.js";
 import { toTerraformSchema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode } from "./codec.js";
 import type { ServiceImpl } from "@connectrpc/connect";
-import type { PartialMessage } from "@bufbuild/protobuf";
 import { datasource, type DataSource, type IDataSource } from "./datasource.js";
 import { resource, type IResource, type Resource } from "./resource.js";
 import type { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
@@ -17,6 +15,13 @@ interface ValidateRequest<TProviderSchema extends Schema> {
 }
 interface ValidateResponse<_TProviderSchema extends Schema> {}
 
+interface ConfigureRequest<TProviderSchema extends Schema> {
+  config: ConfigFor<TProviderSchema>;
+}
+interface ConfigureResponse<TInternalState> {
+  $state: TInternalState;
+}
+
 export interface IProvider<
   TProviderSchema extends Schema,
   TInternalState,
@@ -25,10 +30,8 @@ export interface IProvider<
   name: TName;
   schema: TProviderSchema;
   configure: (
-    config: ConfigFor<TProviderSchema>,
-  ) => Effect.Effect<
-    { $state: TInternalState } & PartialMessage<ConfigureProvider_Response>
-  >;
+    req: NoInfer<ConfigureRequest<TProviderSchema>>,
+  ) => Effect.Effect<ConfigureResponse<TInternalState>, never, Diagnostics>;
   validate: (
     req: NoInfer<ValidateRequest<TProviderSchema>>,
   ) => Effect.Effect<
@@ -140,11 +143,12 @@ class ProviderBuilder<
       },
       async configureProvider(req, ctx) {
         console.error("[ERROR] configureProvider", providerInstanceId);
-        const decoded: ProviderConfig = decode(req.config!.msgpack);
 
-        const result = await Effect.runPromise(provider.configure(decoded), {
-          signal: ctx.signal,
-        });
+        const config: ProviderConfig = decode(req.config!.msgpack);
+        const result = await Effect.runPromise(
+          provider.configure({ config }).pipe(withDiagnostics()),
+          { signal: ctx.signal },
+        );
         internalState = result.$state;
         return result;
       },

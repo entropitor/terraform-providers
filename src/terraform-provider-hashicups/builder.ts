@@ -12,7 +12,7 @@ export const hashicupsProviderBuilder = providerBuilder({
     password: tf.optional.string(),
   }),
 
-  configure(config) {
+  configure({ config }) {
     return Effect.promise(async () => {
       try {
         return { $state: await HashiCupsApiClient.signin(config) };
