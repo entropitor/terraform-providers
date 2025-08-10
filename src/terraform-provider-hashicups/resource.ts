@@ -1,6 +1,6 @@
 import type { ConfigFor, StateFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
-import { decode, encode } from "./codec.js";
+import { decode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import type {
   ApplyResourceChange_Request,
@@ -142,7 +142,9 @@ export const resource = <TResourceSchema extends Schema, TState>(
           )
           .pipe(
             Effect.map((response) => ({
-              plannedState: { msgpack: encode(response.plannedState) },
+              plannedState: {
+                msgpack: encodeWithSchema(response.plannedState, args.schema),
+              },
             })),
             withDiagnostics(),
           ),
@@ -168,7 +170,9 @@ export const resource = <TResourceSchema extends Schema, TState>(
               provider.state,
             );
             return {
-              newState: { msgpack: encode(response.newState) },
+              newState: {
+                msgpack: encodeWithSchema(response.newState, args.schema),
+              },
             };
           } else if (config != null) {
             const response = yield* args.update(
@@ -176,12 +180,14 @@ export const resource = <TResourceSchema extends Schema, TState>(
               provider.state,
             );
             return {
-              newState: { msgpack: encode(response.newState) },
+              newState: {
+                msgpack: encodeWithSchema(response.newState, args.schema),
+              },
             };
           } else {
             yield* args.delete({ config: null, priorState }, provider.state);
             return {
-              newState: { msgpack: encode(null) },
+              newState: { msgpack: encodeWithSchema(null, args.schema) },
             };
           }
         }).pipe(withDiagnostics()),

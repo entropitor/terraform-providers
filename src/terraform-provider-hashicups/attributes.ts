@@ -16,7 +16,7 @@ type AttributeType =
 
 type Presence = "required" | "computed" | "optional" | "computed_optional";
 
-type Attribute = AttributeType & { presence: Presence } & {
+export type Attribute = AttributeType & { presence: Presence } & {
   description?: string;
 };
 
