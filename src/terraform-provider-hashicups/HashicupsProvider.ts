@@ -3,6 +3,7 @@ import { schema, tf, withDescription } from "./attributes.js";
 import { provider } from "./provider.js";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
+import { encode } from "./codec.js";
 
 const coffeeAttributes = {
   collection: tf.computed.string(),
@@ -66,6 +67,7 @@ export const providerSchema = {
 };
 
 export const hashicupsProvider = provider({
+  name: "hashicups",
   schema: providerSchema.provider,
 
   configure(config) {
@@ -113,5 +115,52 @@ export const hashicupsProvider = provider({
       }
       return {};
     });
+  },
+
+  datasources: {
+    hashicups_coffees: {
+      schema: providerSchema.dataSourceSchemas.hashicups_coffees,
+      validate() {
+        return Effect.sync(() => ({}));
+      },
+      read(_config, client) {
+        return Effect.promise(async () => {
+          return {
+            state: {
+              msgpack: encode({
+                coffees: await client.coffees(),
+              }),
+            },
+          };
+        });
+      },
+    },
+    hashicups_order: {
+      schema: providerSchema.dataSourceSchemas.hashicups_order,
+      validate() {
+        return Effect.sync(() => ({}));
+      },
+      read(config, client) {
+        return Effect.promise(async () => {
+          try {
+            return {
+              state: {
+                msgpack: encode(await client.getOrder(config.id)),
+              },
+            };
+          } catch (error: any) {
+            return {
+              diagnostics: [
+                {
+                  detail: error.message,
+                  summary: "Error while reading resource",
+                  severity: Diagnostic_Severity.ERROR,
+                },
+              ],
+            };
+          }
+        });
+      },
+    },
   },
 });

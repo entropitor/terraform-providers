@@ -1,18 +1,23 @@
 import type {
   ConfigureProvider_Request,
   ConfigureProvider_Response,
+  ReadDataSource_Request,
   ValidateProviderConfig_Request,
   ValidateProviderConfig_Response,
+  ValidateResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ConfigFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import type { PartialMessage } from "@bufbuild/protobuf";
+import { datasource, type DataSource, type IDataSource } from "./datasource.js";
 
 interface IProvider<
   TProviderSchema extends Schema,
-  TState extends object = {},
+  TDataSourcesSchema extends Record<string, Schema>,
+  TState,
+  TName extends string,
 > {
   schema: TProviderSchema;
   configure: (
@@ -23,15 +28,53 @@ interface IProvider<
   validate: (
     config: ConfigFor<TProviderSchema>,
   ) => Effect.Effect<PartialMessage<ValidateProviderConfig_Response>>;
+
+  datasources: {
+    [TDataSourceName in keyof TDataSourcesSchema]: IDataSource<
+      TDataSourcesSchema[TDataSourceName],
+      NoInfer<TState>
+    > &
+      (TDataSourceName extends `${NoInfer<TName>}_${string}`
+        ? object
+        : {
+            error: `Your data source name should start with ${TName}_`;
+          });
+  };
+  name: TName;
 }
 
-export const provider = <TState extends object, TProviderSchema extends Schema>(
-  args: IProvider<TProviderSchema, TState>,
+export interface ProviderForResources<TState> {
+  state: TState;
+  providerInstanceId: number;
+}
+
+export const provider = <
+  TProviderSchema extends Schema,
+  TDataSourcesSchema extends Record<string, Schema>,
+  TState,
+  TName extends string,
+>(
+  args: IProvider<TProviderSchema, TDataSourcesSchema, TState, TName>,
 ) => {
   const providerInstanceId = Math.floor(Math.random() * 1000);
   type ProviderConfig = ConfigFor<TProviderSchema>;
 
   let state: TState = undefined as any;
+
+  const providerInput = {
+    get state() {
+      return state;
+    },
+    providerInstanceId,
+  };
+
+  const datasources: Record<string, DataSource> = Object.fromEntries(
+    Object.entries(args.datasources).map(([name, datasourceInput]) => [
+      name,
+      datasource(providerInput, datasourceInput),
+    ]),
+  );
+
   return {
     get state() {
       return state;
@@ -61,6 +104,18 @@ export const provider = <TState extends object, TProviderSchema extends Schema>(
       });
       state = result.$state;
       return result;
+    },
+
+    async validateDataResourceConfig(
+      req: ValidateResourceConfig_Request,
+      ctx: HandlerContext,
+    ) {
+      const datasource = datasources[req.typeName];
+      return datasource!.validateDataResourceConfig(req, ctx);
+    },
+    async readDataSource(req: ReadDataSource_Request, ctx: HandlerContext) {
+      const datasource = datasources[req.typeName];
+      return datasource!.readDataSource(req, ctx);
     },
   };
 };

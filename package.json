@@ -13,7 +13,8 @@
     "typescript": "^5.6.3"
   },
   "scripts": {
-    "generate": "buf generate"
+    "generate": "buf generate",
+    "types": "tsc -b src/terraform-provider-hashicups"
   },
   "devDependencies": {
     "@bufbuild/protoc-gen-es": "^1.10.0",

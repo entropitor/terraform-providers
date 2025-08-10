@@ -42,48 +42,14 @@ const routes = (router: ConnectRouter) =>
       async configureProvider(req, ctx) {
         return hashicupsProvider.configureProvider(req, ctx);
       },
-      async readDataSource(req) {
-        console.error("[ERROR] readDataSource", providerInstanceId);
-        const config = decode(req.config!.msgpack);
-        try {
-          switch (req.typeName) {
-            case "hashicups_coffees":
-              return {
-                state: {
-                  msgpack: encode({
-                    coffees: await hashicupsProvider.state.coffees(),
-                  }),
-                },
-              };
-            case "hashicups_order":
-              return {
-                state: {
-                  msgpack: encode(
-                    await hashicupsProvider.state.getOrder(config.id),
-                  ),
-                },
-              };
-            default:
-              throw new Error("Unknown data source");
-          }
-        } catch (error: any) {
-          return {
-            diagnostics: [
-              {
-                detail: error.message,
-                summary: "Error while reading resource",
-                severity: Diagnostic_Severity.ERROR,
-              },
-            ],
-          };
-        }
+      async readDataSource(req, ctx) {
+        return hashicupsProvider.readDataSource(req, ctx);
       },
       validateProviderConfig(req, ctx) {
         return hashicupsProvider.validateProviderConfig(req, ctx);
       },
-      validateDataResourceConfig() {
-        console.error("[ERROR] validateDataResourceConfig", providerInstanceId);
-        return {};
+      validateDataResourceConfig(req, ctx) {
+        return hashicupsProvider.validateDataResourceConfig(req, ctx);
       },
       validateResourceConfig() {
         console.error("[ERROR] validateResourceConfig", providerInstanceId);
