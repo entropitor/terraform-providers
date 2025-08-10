@@ -10,14 +10,11 @@ import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
-import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 import { toTerraformSchema, type ConfigFor } from "./attributes.js";
 import { hashicupsProvider, providerSchema } from "./HashicupsProvider.js";
 import { encode, decode, Unknown } from "./codec.js";
 
-const providerInstanceId = Math.floor(Math.random() * 1000);
-
-let client: HashiCupsApiClient | null = null;
+const providerInstanceId = hashicupsProvider.providerInstanceId;
 
 type ProviderConfig = ConfigFor<typeof hashicupsProvider.providerSchema>;
 const routes = (router: ConnectRouter) =>
@@ -26,7 +23,9 @@ const routes = (router: ConnectRouter) =>
       async importResourceState(req) {
         console.error("[ERROR] importResourceState", providerInstanceId);
 
-        const order = await client!.getOrder(parseInt(req.id, 10));
+        const order = await hashicupsProvider.state.getOrder(
+          parseInt(req.id, 10),
+        );
         return {
           importedResources: [
             {
@@ -41,29 +40,8 @@ const routes = (router: ConnectRouter) =>
           ],
         };
       },
-      async configureProvider(req) {
-        console.error("[ERROR] configureProvider", providerInstanceId);
-        const decoded: ProviderConfig = decode(req.config!.msgpack);
-
-        try {
-          client = await HashiCupsApiClient.signin(decoded);
-          return {};
-        } catch (error: any) {
-          return {
-            diagnostics: [
-              {
-                detail: error.message,
-                summary: "Invalid credentials",
-                severity: Diagnostic_Severity.ERROR,
-                attribute: {
-                  steps: [
-                    { selector: { case: "attributeName", value: "password" } },
-                  ],
-                },
-              },
-            ],
-          };
-        }
+      async configureProvider(req, ctx) {
+        return hashicupsProvider.configureProvider(req, ctx);
       },
       async readDataSource(req) {
         console.error("[ERROR] readDataSource", providerInstanceId);
@@ -74,14 +52,16 @@ const routes = (router: ConnectRouter) =>
               return {
                 state: {
                   msgpack: encode({
-                    coffees: await client!.coffees(),
+                    coffees: await hashicupsProvider.state.coffees(),
                   }),
                 },
               };
             case "hashicups_order":
               return {
                 state: {
-                  msgpack: encode(await client!.getOrder(config.id)),
+                  msgpack: encode(
+                    await hashicupsProvider.state.getOrder(config.id),
+                  ),
                 },
               };
             default:
@@ -190,7 +170,9 @@ const routes = (router: ConnectRouter) =>
 
         try {
           if (prior == null) {
-            const order = await client!.createOrder(config.items);
+            const order = await hashicupsProvider.state.createOrder(
+              config.items,
+            );
             return {
               newState: {
                 msgpack: encode({
@@ -200,8 +182,8 @@ const routes = (router: ConnectRouter) =>
               },
             };
           } else if (config != null) {
-            await client!.updateOrder(prior.id, config.items);
-            const order = await client!.getOrder(prior.id);
+            await hashicupsProvider.state.updateOrder(prior.id, config.items);
+            const order = await hashicupsProvider.state.getOrder(prior.id);
             return {
               newState: {
                 msgpack: encode({
@@ -211,7 +193,7 @@ const routes = (router: ConnectRouter) =>
               },
             };
           } else {
-            await client!.deleteOrder(prior.id);
+            await hashicupsProvider.state.deleteOrder(prior.id);
             return {
               newState: { msgpack: encode(null) },
             };
@@ -244,7 +226,7 @@ const routes = (router: ConnectRouter) =>
             newState: {
               msgpack: encode({
                 ...currentState,
-                ...(await client!.getOrder(currentState.id)),
+                ...(await hashicupsProvider.state.getOrder(currentState.id)),
               }),
             },
           };

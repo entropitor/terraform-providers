@@ -1,5 +1,8 @@
+import { Effect } from "effect";
 import { schema, tf, withDescription } from "./attributes.js";
 import { provider } from "./provider.js";
+import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
+import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 
 const coffeeAttributes = {
   collection: tf.computed.string(),
@@ -62,4 +65,30 @@ export const providerSchema = {
   },
 };
 
-export const hashicupsProvider = provider(providerSchema.provider);
+export const hashicupsProvider = provider({
+  schema: providerSchema.provider,
+
+  configure(config) {
+    return Effect.promise(async () => {
+      try {
+        return { $state: await HashiCupsApiClient.signin(config) };
+      } catch (error: any) {
+        return {
+          $state: null! as HashiCupsApiClient,
+          diagnostics: [
+            {
+              detail: error.message,
+              summary: "Invalid credentials",
+              severity: Diagnostic_Severity.ERROR,
+              attribute: {
+                steps: [
+                  { selector: { case: "attributeName", value: "password" } },
+                ],
+              },
+            },
+          ],
+        };
+      }
+    });
+  },
+});
