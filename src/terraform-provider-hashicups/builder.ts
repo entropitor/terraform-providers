@@ -1,8 +1,8 @@
 import { Effect } from "effect";
-import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import { schema, tf } from "../provider-sdk/attributes.js";
 import { providerBuilder } from "../provider-sdk/provider.js";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
+import { Diagnostics, diagnosticsPath } from "../provider-sdk/diagnostics.js";
 
 export const hashicupsProviderBuilder = providerBuilder({
   name: "hashicups",
@@ -13,25 +13,19 @@ export const hashicupsProviderBuilder = providerBuilder({
   }),
 
   configure({ config }) {
-    return Effect.promise(async () => {
+    return Effect.gen(function* () {
       try {
-        return { $state: await HashiCupsApiClient.signin(config) };
-      } catch (error: any) {
         return {
-          $state: null! as HashiCupsApiClient,
-          diagnostics: [
-            {
-              detail: error.message,
-              summary: "Invalid credentials",
-              severity: Diagnostic_Severity.ERROR,
-              attribute: {
-                steps: [
-                  { selector: { case: "attributeName", value: "password" } },
-                ],
-              },
-            },
-          ],
+          $state: yield* Effect.promise(() =>
+            HashiCupsApiClient.signin(config),
+          ),
         };
+      } catch (error: any) {
+        return yield* Diagnostics.crit(
+          [diagnosticsPath.attribute("password")],
+          "Invalid credentials",
+          error.message,
+        );
       }
     });
   },

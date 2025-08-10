@@ -8,7 +8,11 @@ import { datasource, type DataSource, type IDataSource } from "./datasource.js";
 import { resource, type IResource, type Resource } from "./resource.js";
 import type { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { serveProvider } from "./serve.js";
-import { withDiagnostics, type Diagnostics } from "./diagnostics.js";
+import {
+  DiagnosticError,
+  withDiagnostics,
+  type Diagnostics,
+} from "./diagnostics.js";
 
 interface ValidateRequest<TProviderSchema extends Schema> {
   config: ConfigFor<TProviderSchema>;
@@ -31,7 +35,11 @@ export interface IProvider<
   schema: TProviderSchema;
   configure: (
     req: NoInfer<ConfigureRequest<TProviderSchema>>,
-  ) => Effect.Effect<ConfigureResponse<TInternalState>, never, Diagnostics>;
+  ) => Effect.Effect<
+    ConfigureResponse<TInternalState>,
+    DiagnosticError,
+    Diagnostics
+  >;
   validate: (
     req: NoInfer<ValidateRequest<TProviderSchema>>,
   ) => Effect.Effect<
@@ -149,6 +157,7 @@ class ProviderBuilder<
           provider.configure({ config }).pipe(withDiagnostics()),
           { signal: ctx.signal },
         );
+        // @ts-expect-error: We don't know the type of result
         internalState = result.$state;
         return result;
       },
