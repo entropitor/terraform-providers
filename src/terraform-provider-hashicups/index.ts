@@ -11,8 +11,6 @@ import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { hashicupsProvider } from "./hashicups/HashicupsProvider.js";
 
-const providerInstanceId = hashicupsProvider.providerInstanceId;
-
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
@@ -52,8 +50,7 @@ const routes = (router: ConnectRouter) =>
     })
     .service(GRPCController, {
       shutdown() {
-        console.error("[ERROR] Shutdown", providerInstanceId);
-        console.error("[ERROR]");
+        hashicupsProvider.shutdown();
         process.exit(0);
       },
     })
