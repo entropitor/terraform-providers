@@ -220,6 +220,10 @@ const routes = (router: ConnectRouter) =>
         console.error("[ERROR] validateDataResourceConfig", providerInstanceId);
         return {};
       },
+      validateResourceConfig() {
+        console.error("[ERROR] validateResourceConfig", providerInstanceId);
+        return {};
+      },
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
