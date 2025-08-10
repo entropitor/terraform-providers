@@ -14,12 +14,63 @@ import { Diagnostic_Severity } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 
 const providerInstanceId = Math.floor(Math.random() * 1000);
 
+class HashiCupsApiClient {
+  private readonly host: string;
+  private readonly token: string;
+
+  constructor(host: string, token: string) {
+    this.host = host;
+    this.token = token;
+  }
+
+  static async signin(config: {
+    host: string;
+    username: string;
+    password: string;
+  }) {
+    const response = await fetch(new URL("/signin", config.host), {
+      method: "POST",
+      body: JSON.stringify({
+        username: config.username,
+        password: config.password,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Could not sign in with these credentials");
+    }
+
+    const json: any = await response.json();
+    return new HashiCupsApiClient(config.host, json.token);
+  }
+}
+
+let client: HashiCupsApiClient | null = null;
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
-      configureProvider() {
+      async configureProvider(req) {
         console.error("[ERROR] configureProvider", providerInstanceId);
-        return {};
+        const decoded = decode(req.config!.msgpack);
+
+        try {
+          client = await HashiCupsApiClient.signin(decoded);
+          return {};
+        } catch (error: any) {
+          return {
+            diagnostics: [
+              {
+                detail: error.message,
+                summary: "Invalid credentials",
+                severity: Diagnostic_Severity.ERROR,
+                attribute: {
+                  steps: [
+                    { selector: { case: "attributeName", value: "password" } },
+                  ],
+                },
+              },
+            ],
+          };
+        }
       },
       validateProviderConfig(req) {
         console.error("[ERROR] validateProviderConfig", providerInstanceId);
