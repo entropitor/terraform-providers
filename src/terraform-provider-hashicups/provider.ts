@@ -2,6 +2,7 @@ import type {
   ApplyResourceChange_Request,
   ConfigureProvider_Request,
   ConfigureProvider_Response,
+  ImportResourceState_Request,
   PlanResourceChange_Request,
   ReadDataSource_Request,
   ReadResource_Request,
@@ -184,6 +185,13 @@ class ProviderBuilder<
       async readResource(req: ReadResource_Request, ctx: HandlerContext) {
         const resource = resources[req.typeName];
         return resource!.readResource(req, ctx);
+      },
+      async importResourceState(
+        req: ImportResourceState_Request,
+        ctx: HandlerContext,
+      ) {
+        const resource = resources[req.typeName];
+        return resource!.importResource(req, ctx);
       },
     };
   }

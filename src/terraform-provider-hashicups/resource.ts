@@ -2,14 +2,18 @@ import type { ConfigFor, StateFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode, encode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
-import type {
-  ApplyResourceChange_Request,
-  PlanResourceChange_Request,
-  ReadResource_Request,
-  ValidateDataResourceConfig_Request,
+import {
+  Diagnostic_Severity,
+  type ApplyResourceChange_Request,
+  type ImportResourceState_Request,
+  type ImportResourceState_Response,
+  type PlanResourceChange_Request,
+  type ReadResource_Request,
+  type ValidateDataResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
 import { Diagnostics, withDiagnostics } from "./diagnostics.js";
+import type { PartialMessage } from "@bufbuild/protobuf";
 
 interface PlanRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
@@ -19,6 +23,9 @@ interface PlanRequest<TResourceSchema extends Schema> {
 }
 interface ReadRequest<TResourceSchema extends Schema> {
   savedState: StateFor<TResourceSchema>;
+}
+interface ImportRequest<_TResourceSchema extends Schema> {
+  resourceId: string;
 }
 interface CreateRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
@@ -38,6 +45,9 @@ interface PlanResponse<TResourceSchema extends Schema> {
 }
 
 interface ReadResponse<TResourceSchema extends Schema> {
+  currentState: StateFor<TResourceSchema>;
+}
+interface ImportResponse<TResourceSchema extends Schema> {
   currentState: StateFor<TResourceSchema>;
 }
 interface CreateResponse<TResourceSchema extends Schema> {
@@ -68,6 +78,14 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<ReadResponse<TResourceSchema>>,
+    never,
+    Diagnostics
+  >;
+  import?: (
+    req: NoInfer<ImportRequest<TResourceSchema>>,
+    providerState: TProviderState,
+  ) => Effect.Effect<
+    NoInfer<ImportResponse<TResourceSchema>>,
     never,
     Diagnostics
   >;
@@ -222,6 +240,42 @@ export const resource = <TResourceSchema extends Schema, TState>(
             newState: {
               msgpack: encodeWithSchema(response.currentState, args.schema),
             },
+          })),
+          withDiagnostics(),
+        ),
+        { signal: ctx.signal },
+      );
+    },
+    async importResource(
+      req: ImportResourceState_Request,
+      ctx: HandlerContext,
+    ): Promise<PartialMessage<ImportResourceState_Response>> {
+      console.error("[ERROR] importResourceState", provider.providerInstanceId);
+
+      if (args.import == null) {
+        return {
+          diagnostics: [
+            {
+              severity: Diagnostic_Severity.ERROR,
+              summary: "Import not supported",
+              detail: `Resource ${req.typeName} does not support being imported.`,
+            },
+          ],
+        };
+      }
+
+      const resourceId = req.id;
+      return await Effect.runPromise(
+        args.import({ resourceId }, provider.state).pipe(
+          Effect.map((response) => ({
+            importedResources: [
+              {
+                typeName: req.typeName,
+                state: {
+                  msgpack: encodeWithSchema(response.currentState, args.schema),
+                },
+              },
+            ],
           })),
           withDiagnostics(),
         ),

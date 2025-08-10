@@ -11,32 +11,14 @@ import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { toTerraformSchema } from "./attributes.js";
 import { hashicupsProvider } from "./hashicups/HashicupsProvider.js";
-import { encode } from "./codec.js";
 
 const providerInstanceId = hashicupsProvider.providerInstanceId;
 
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
-      async importResourceState(req) {
-        console.error("[ERROR] importResourceState", providerInstanceId);
-
-        const order = await hashicupsProvider.state.getOrder(
-          parseInt(req.id, 10),
-        );
-        return {
-          importedResources: [
-            {
-              typeName: req.typeName,
-              state: {
-                msgpack: encode({
-                  ...order,
-                  last_updated: null,
-                }),
-              },
-            },
-          ],
-        };
+      async importResourceState(req, ctx) {
+        return hashicupsProvider.importResourceState(req, ctx);
       },
       async configureProvider(req, ctx) {
         return hashicupsProvider.configureProvider(req, ctx);

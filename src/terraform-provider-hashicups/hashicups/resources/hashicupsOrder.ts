@@ -69,6 +69,16 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
       Effect.map((order) => ({ currentState: order })),
     );
   },
+  import({ resourceId }, client) {
+    return Effect.promise(() => client.getOrder(Number(resourceId))).pipe(
+      Effect.map((order) => ({
+        currentState: {
+          ...order,
+          last_updated: null,
+        },
+      })),
+    );
+  },
 
   create({ config }, client) {
     return Effect.gen(function* () {
