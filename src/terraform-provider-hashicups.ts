@@ -2,7 +2,6 @@ import type { ConnectRouter } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import http from "node:http2";
 import forge from "node-forge";
-import { decode, encode } from "msgpackr";
 
 import { Health } from "./gen/grpc/health/v1/health_connect.js";
 import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
@@ -14,6 +13,36 @@ import {
   Diagnostic_Severity,
   Schema_Object_NestingMode,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
+import {
+  decode as msgpackDecode,
+  encode as msgpackEncode,
+  ExtensionCodec,
+} from "@msgpack/msgpack";
+
+class Unknown {
+  _unknown = "UnknownValue";
+
+  // @ts-expect-error unused
+  constructor(private readonly buffer?: Buffer | Uint8Array) {}
+}
+const extensionCodec = new ExtensionCodec();
+
+extensionCodec.register({
+  type: 0,
+  encode: (object) => {
+    if (object instanceof Unknown) {
+      return encode([]);
+    }
+    return null;
+  },
+  decode: (data) => {
+    return new Unknown(data);
+  },
+});
+
+const encode = (value: unknown) => msgpackEncode(value, { extensionCodec });
+const decode = (value: unknown) =>
+  msgpackDecode(value, { extensionCodec }) as any;
 
 const providerInstanceId = Math.floor(Math.random() * 1000);
 
@@ -227,9 +256,26 @@ const routes = (router: ConnectRouter) =>
       planResourceChange(req) {
         console.error("[ERROR] planResourceChange", providerInstanceId);
 
+        const proposed = decode(req.proposedNewState?.msgpack);
+
+        proposed.id = new Unknown();
+        proposed.last_updated = new Unknown();
+        proposed.items.forEach((item: any) => {
+          item.coffee.collection = new Unknown();
+          item.coffee.color = new Unknown();
+          item.coffee.description = new Unknown();
+          item.coffee.image = new Unknown();
+          item.coffee.ingredients = new Unknown();
+          item.coffee.name = new Unknown();
+          item.coffee.origin = new Unknown();
+          item.coffee.price = new Unknown();
+          item.coffee.teaser = new Unknown();
+        });
+
         return {
-          plannedState: req.proposedNewState!,
+          plannedState: { msgpack: encode(proposed) },
         };
+      },
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
