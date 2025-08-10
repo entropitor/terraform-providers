@@ -113,17 +113,17 @@ const routes = (router: ConnectRouter) =>
         if (!decoded.host.startsWith("https://")) {
           return {
             diagnostics: [
-              {
-                severity: Diagnostic_Severity.WARNING,
-                summary: "Unsafe protocol",
-                detail:
-                  "You are using an unsafe protocol. It will be better if you would set this to https://",
-                attribute: {
-                  steps: [
-                    { selector: { case: "attributeName", value: "host" } },
-                  ],
-                },
-              },
+              // {
+              //   severity: Diagnostic_Severity.WARNING,
+              //   summary: "Unsafe protocol",
+              //   detail:
+              //     "You are using an unsafe protocol. It will be better if you would set this to https://",
+              //   attribute: {
+              //     steps: [
+              //       { selector: { case: "attributeName", value: "host" } },
+              //     ],
+              //   },
+              // },
             ],
           };
         }
