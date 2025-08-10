@@ -12,7 +12,7 @@ import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import { toTerraformSchema } from "./attributes.js";
 import { hashicupsProvider, providerSchema } from "./HashicupsProvider.js";
-import { encode, decode, Unknown } from "./codec.js";
+import { encode, decode } from "./codec.js";
 
 const providerInstanceId = hashicupsProvider.providerInstanceId;
 
