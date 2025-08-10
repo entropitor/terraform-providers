@@ -320,7 +320,7 @@ const routes = (router: ConnectRouter) =>
         }
         proposed.items.forEach((item: any, index: number) => {
           const priorItem = prior?.items?.[index];
-          if (item.coffee.id === priorItem.coffee.id) {
+          if (item.coffee?.id === priorItem?.coffee?.id) {
             item.coffee = priorItem.coffee;
           }
         });
