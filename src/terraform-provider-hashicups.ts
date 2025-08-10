@@ -12,13 +12,17 @@ import { generateIdentity } from "./certificate.js";
 import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
 import { Diagnostic_Severity } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 
+const providerInstanceId = Math.floor(Math.random() * 1000);
+
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
       configureProvider() {
+        console.error("[ERROR] configureProvider", providerInstanceId);
         return {};
       },
       validateProviderConfig(req) {
+        console.error("[ERROR] validateProviderConfig", providerInstanceId);
         const decoded = decode(req.config!.msgpack);
         if (!decoded.host.startsWith("https://")) {
           return {
@@ -40,9 +44,11 @@ const routes = (router: ConnectRouter) =>
         return {};
       },
       validateDataResourceConfig() {
+        console.error("[ERROR] validateDataResourceConfig", providerInstanceId);
         return {};
       },
       getProviderSchema(_req) {
+        console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
           provider: {
             block: {
@@ -70,6 +76,8 @@ const routes = (router: ConnectRouter) =>
     })
     .service(GRPCController, {
       shutdown() {
+        console.error("[ERROR] Shutdown", providerInstanceId);
+        console.error("[ERROR]");
         process.exit(0);
       },
     })
