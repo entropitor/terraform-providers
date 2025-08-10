@@ -15,6 +15,9 @@ import { Diagnostic_Severity } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
+      configureProvider() {
+        return {};
+      },
       validateProviderConfig(req) {
         const decoded = decode(req.config!.msgpack);
         if (!decoded.host.startsWith("https://")) {
