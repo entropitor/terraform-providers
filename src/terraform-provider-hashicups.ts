@@ -16,7 +16,22 @@ const routes = (router: ConnectRouter) =>
       getProviderSchema(_req) {
         return {
           provider: {
-            block: {},
+            block: {
+              attributes: [
+                {
+                  name: "host",
+                  type: Buffer.from('"string"'),
+                },
+                {
+                  name: "username",
+                  type: Buffer.from('"string"'),
+                },
+                {
+                  name: "password",
+                  type: Buffer.from('"string"'),
+                },
+              ],
+            },
           },
         };
       },
