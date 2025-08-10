@@ -98,6 +98,23 @@ class HashiCupsApiClient {
     const json: any = await response.json();
     return json;
   }
+
+  async createOrder(data: unknown) {
+    const response = await fetch(new URL(`/orders`, this.host), {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: this.token,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Could not get order: ${await response.text()}`);
+    }
+
+    const json: any = await response.json();
+    return json;
+  }
 }
 
 let client: HashiCupsApiClient | null = null;
@@ -275,6 +292,31 @@ const routes = (router: ConnectRouter) =>
         return {
           plannedState: { msgpack: encode(proposed) },
         };
+      },
+      async applyResourceChange(req) {
+        console.error("[ERROR] applyResourceChange", providerInstanceId);
+
+        const config = decode(req.config?.msgpack);
+        try {
+          const order = await client!.createOrder(config.items);
+          return {
+            newState: {
+              msgpack: encode({
+                ...order,
+                last_updated: new Date().toISOString(),
+              }),
+            },
+          };
+        } catch (error) {
+          return {
+            diagnostics: [
+              {
+                severity: Diagnostic_Severity.ERROR,
+                detail: error?.toString() ?? "Unknown error",
+              },
+            ],
+          };
+        }
       },
       getProviderSchema(_req) {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
