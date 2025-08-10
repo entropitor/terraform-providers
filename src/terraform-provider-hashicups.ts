@@ -241,6 +241,106 @@ const routes = (router: ConnectRouter) =>
               ],
             },
           },
+          resourceSchemas: {
+            hashicups_order: {
+              block: {
+                attributes: [
+                  {
+                    name: "id",
+                    type: Buffer.from('"number"'),
+                    computed: true,
+                  },
+                  {
+                    name: "last_updated",
+                    type: Buffer.from('"string"'),
+                    computed: true,
+                  },
+                  {
+                    name: "items",
+                    required: true,
+                    nestedType: {
+                      nesting: Schema_Object_NestingMode.LIST,
+                      attributes: [
+                        {
+                          name: "coffee",
+                          required: true,
+                          nestedType: {
+                            nesting: Schema_Object_NestingMode.SINGLE,
+                            attributes: [
+                              {
+                                name: "id",
+                                required: true,
+                                type: Buffer.from('"number"'),
+                              },
+                              {
+                                name: "collection",
+                                computed: true,
+                                type: Buffer.from('"string"'),
+                              },
+                              {
+                                name: "color",
+                                computed: true,
+                                type: Buffer.from('"string"'),
+                              },
+                              {
+                                name: "description",
+                                computed: true,
+                                type: Buffer.from('"string"'),
+                              },
+                              {
+                                name: "image",
+                                computed: true,
+                                type: Buffer.from('"string"'),
+                              },
+                              {
+                                name: "ingredients",
+                                computed: true,
+                                nestedType: {
+                                  nesting: Schema_Object_NestingMode.LIST,
+                                  attributes: [
+                                    {
+                                      name: "ingredient_id",
+                                      computed: true,
+                                      type: Buffer.from('"number"'),
+                                    },
+                                  ],
+                                },
+                              },
+                              {
+                                name: "name",
+                                computed: true,
+                                type: Buffer.from('"string"'),
+                              },
+                              {
+                                name: "origin",
+                                computed: true,
+                                type: Buffer.from('"string"'),
+                              },
+                              {
+                                name: "price",
+                                computed: true,
+                                type: Buffer.from('"number"'),
+                              },
+                              {
+                                name: "teaser",
+                                computed: true,
+                                type: Buffer.from('"string"'),
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          name: "quantity",
+                          required: true,
+                          type: Buffer.from('"number"'),
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
           dataSourceSchemas: {
             hashicups_coffees: {
               block: {
