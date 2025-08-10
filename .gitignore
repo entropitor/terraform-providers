@@ -4,5 +4,5 @@ dist/
 .envrc
 *.tfvars
 *.tfstate
-*.tfstate.backup
+*.tfstate.backup*
 .terraform/

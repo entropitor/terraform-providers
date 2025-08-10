@@ -4131,8 +4131,17 @@ paths:
               required:
                 - server_uuid
                 - project_uuid
-                - environment_name
-                - environment_uuid
+              oneOf:
+                - type: object
+                  required: ["environment_name"]
+                  properties:
+                    environment_name:
+                      type: string
+                - type: object
+                  required: ["environment_uuid"]
+                  properties:
+                    environment_uuid:
+                      type: string
               properties:
                 type:
                   description: "The one-click service type"
@@ -4263,6 +4272,7 @@ paths:
           content:
             application/json:
               schema:
+                required: ["uuid"]
                 properties:
                   uuid: { type: string, description: "Service UUID." }
                   domains:
@@ -5573,6 +5583,9 @@ components:
       type: object
     Service:
       description: "Service model"
+      required:
+        - uuid
+        - name
       properties:
         id:
           type: integer

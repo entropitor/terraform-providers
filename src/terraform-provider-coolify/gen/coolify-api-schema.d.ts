@@ -1631,9 +1631,9 @@ export interface components {
       /** @description The unique identifier of the service. Only used for database identification. */
       id?: number;
       /** @description The unique identifier of the service. */
-      uuid?: string;
+      uuid: string;
       /** @description The name of the service. */
-      name?: string;
+      name: string;
       /** @description The unique identifier of the environment where the service is attached to. */
       environment_id?: number;
       /** @description The unique identifier of the server where the service is running. */
@@ -5057,9 +5057,9 @@ export interface operations {
           /** @description Project UUID. */
           project_uuid: string;
           /** @description Environment name. You need to provide at least one of environment_name or environment_uuid. */
-          environment_name: string;
+          environment_name?: string;
           /** @description Environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-          environment_uuid: string;
+          environment_uuid?: string;
           /** @description Server UUID. */
           server_uuid: string;
           /** @description Destination UUID. Required if server has multiple destinations. */
@@ -5071,7 +5071,14 @@ export interface operations {
           instant_deploy?: boolean;
           /** @description The Docker Compose raw content. */
           docker_compose_raw?: string;
-        };
+        } & (
+          | {
+              environment_name: string;
+            }
+          | {
+              environment_uuid: string;
+            }
+        );
       };
     };
     responses: {
@@ -5083,7 +5090,7 @@ export interface operations {
         content: {
           "application/json": {
             /** @description Service UUID. */
-            uuid?: string;
+            uuid: string;
             /** @description Service domains. */
             domains?: string[];
           };

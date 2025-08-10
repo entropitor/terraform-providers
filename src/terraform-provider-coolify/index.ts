@@ -4,6 +4,7 @@ import {
   coolifyServersDataSource,
 } from "./datasources/server.js";
 import { coolifyProject } from "./resources/project.js";
+import { coolifyService } from "./resources/service.js";
 
 coolifyProviderBuilder.serve({
   datasources: {
@@ -12,5 +13,6 @@ coolifyProviderBuilder.serve({
   },
   resources: {
     coolify_project: coolifyProject,
+    coolify_service: coolifyService,
   },
 });
