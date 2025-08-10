@@ -11,6 +11,7 @@ import { generateIdentity } from "./certificate.js";
 import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
 import {
   Diagnostic_Severity,
+  Schema_Attribute,
   Schema_Object_NestingMode,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import {
@@ -18,6 +19,7 @@ import {
   encode as msgpackEncode,
   ExtensionCodec,
 } from "@msgpack/msgpack";
+import type { PartialMessage } from "@bufbuild/protobuf";
 
 class Unknown {
   _unknown = "UnknownValue";
@@ -147,7 +149,7 @@ class HashiCupsApiClient {
 }
 
 let client: HashiCupsApiClient | null = null;
-const COFFEE_ATTRIBUTES = [
+const COFFEE_ATTRIBUTES: PartialMessage<Schema_Attribute>[] = [
   {
     name: "collection",
     type: Buffer.from('"string"'),
@@ -574,10 +576,12 @@ const routes = (router: ConnectRouter) =>
           dataSourceSchemas: {
             hashicups_coffees: {
               block: {
+                description: "All the coffees our coffee shop has",
                 attributes: [
                   {
                     name: "coffees",
                     computed: true,
+                    description: "The list of coffees",
                     nestedType: {
                       nesting: Schema_Object_NestingMode.LIST,
                       attributes: COFFEE_ATTRIBUTES,
