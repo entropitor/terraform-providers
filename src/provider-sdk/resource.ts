@@ -24,7 +24,7 @@ import { preValidateSchema } from "./pre-validate.js";
 interface PlanRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
   proposedNewState: StateFor<TResourceSchema>;
-  priorState: StateFor<TResourceSchema>;
+  priorState: StateFor<TResourceSchema> | null;
   proposedNewStateIsPriorState: boolean;
 }
 interface ReadRequest<TResourceSchema extends Schema> {
