@@ -11,9 +11,7 @@ export const hashicupsOrderDataSource = hashicupsProviderBuilder.datasource({
       quantity: tf.computed.number(),
     }),
   }),
-  validate() {
-    return Effect.sync(() => ({}));
-  },
+
   read({ config }, client) {
     return Effect.promise(async () => {
       return {

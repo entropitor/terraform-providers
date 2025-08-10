@@ -9,9 +9,7 @@ export const hashicupsCoffeesDataSource = hashicupsProviderBuilder.datasource({
       .list(coffeeAttributes)
       .pipe(withDescription("The list of coffees")),
   }).pipe(withDescription("All the coffees our coffee shop has")),
-  validate() {
-    return Effect.sync(() => ({}));
-  },
+
   read(_, client) {
     return Effect.promise(async () => {
       return {

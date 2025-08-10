@@ -2,11 +2,9 @@ import type { ConfigFor, Schema, StateFor } from "./attributes.js";
 import { Effect } from "effect";
 import { decode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
-import type { PartialMessage } from "@bufbuild/protobuf";
 import type {
   ReadDataSource_Request,
   ValidateDataResourceConfig_Request,
-  ValidateDataResourceConfig_Response,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
 import { withDiagnostics, type Diagnostics } from "./diagnostics.js";
@@ -18,12 +16,22 @@ interface ReadResponse<TDataSourceSchema extends Schema> {
   state: StateFor<TDataSourceSchema>;
 }
 
+interface ValidateRequest<TDataSourceSchema extends Schema> {
+  config: ConfigFor<TDataSourceSchema>;
+}
+interface ValidateResponse<_TDataSourceSchema extends Schema> {}
+
 export interface IDataSource<TDataSourceSchema extends Schema, TProviderState> {
   schema: TDataSourceSchema;
-  validate: (
-    config: ConfigFor<TDataSourceSchema>,
+
+  validate?: (
+    req: NoInfer<ValidateRequest<TDataSourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<PartialMessage<ValidateDataResourceConfig_Response>>;
+  ) => Effect.Effect<
+    void | NoInfer<ValidateResponse<TDataSourceSchema>>,
+    never,
+    Diagnostics
+  >;
   read: (
     req: NoInfer<ReadRequest<TDataSourceSchema>>,
     providerState: TProviderState,
@@ -53,10 +61,21 @@ export const datasource = <TDataSourceSchema extends Schema, TState>(
         "[ERROR] validateDataResourceConfig",
         provider.providerInstanceId,
       );
+
+      if (args.validate === undefined) {
+        return {};
+      }
+
       const config: DataSourceConfig = decode(req.config!.msgpack);
-      return await Effect.runPromise(args.validate(config, provider.state), {
-        signal: ctx.signal,
-      });
+      return await Effect.runPromise(
+        args.validate({ config }, provider.state).pipe(
+          Effect.map(() => ({})),
+          withDiagnostics(),
+        ),
+        {
+          signal: ctx.signal,
+        },
+      );
     },
     async readDataSource(req: ReadDataSource_Request, ctx: HandlerContext) {
       console.error("[ERROR] readDataSource", provider.providerInstanceId);
