@@ -37,9 +37,7 @@ interface CreateResponse<TResourceSchema extends Schema> {
 interface UpdateResponse<TResourceSchema extends Schema> {
   newState: StateFor<TResourceSchema>;
 }
-interface DeleteResponse<_TResourceSchema extends Schema> {
-  diagnostics?: never[];
-}
+interface DeleteResponse<_TResourceSchema extends Schema> {}
 
 export interface IResource<TResourceSchema extends Schema, TProviderState> {
   schema: TResourceSchema;
@@ -55,15 +53,27 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
   create: (
     req: NoInfer<CreateRequest<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<NoInfer<CreateResponse<TResourceSchema>>>;
+  ) => Effect.Effect<
+    NoInfer<CreateResponse<TResourceSchema>>,
+    never,
+    Diagnostics
+  >;
   update: (
     req: NoInfer<UpdateRequest<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<NoInfer<UpdateResponse<TResourceSchema>>>;
+  ) => Effect.Effect<
+    NoInfer<UpdateResponse<TResourceSchema>>,
+    never,
+    Diagnostics
+  >;
   delete: (
     req: NoInfer<DeleteRequest<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<NoInfer<DeleteResponse<TResourceSchema>>>;
+  ) => Effect.Effect<
+    void | NoInfer<DeleteResponse<TResourceSchema>>,
+    never,
+    Diagnostics
+  >;
 }
 
 export type Resource = ReturnType<typeof resource>;
@@ -145,7 +155,7 @@ export const resource = <TResourceSchema extends Schema, TState>(
               provider.state,
             );
             return {
-              newState: { msgpack: encode(response.newState), diagnostics: [] },
+              newState: { msgpack: encode(response.newState) },
             };
           } else if (config != null) {
             const response = yield* args.update(
@@ -153,15 +163,15 @@ export const resource = <TResourceSchema extends Schema, TState>(
               provider.state,
             );
             return {
-              newState: { msgpack: encode(response.newState), diagnostics: [] },
+              newState: { msgpack: encode(response.newState) },
             };
           } else {
             yield* args.delete({ config: null, priorState }, provider.state);
             return {
-              newState: { msgpack: encode(null), diagnostics: [] },
+              newState: { msgpack: encode(null) },
             };
           }
-        }),
+        }).pipe(withDiagnostics()),
         { signal: ctx.signal },
       );
     },

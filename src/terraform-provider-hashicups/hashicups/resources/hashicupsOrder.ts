@@ -68,8 +68,10 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
   },
 
   create({ config }, client) {
-    return Effect.promise(async () => {
-      const order = await client.createOrder(config.items);
+    return Effect.gen(function* () {
+      const order = yield* Effect.promise(() =>
+        client.createOrder(config.items),
+      );
       return {
         newState: {
           ...order,
@@ -93,7 +95,6 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
   delete({ priorState: prior }, client) {
     return Effect.promise(async () => {
       await client.deleteOrder(prior.id);
-      return {};
     });
   },
 });
