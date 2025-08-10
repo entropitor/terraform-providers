@@ -3,17 +3,17 @@ import { connectNodeAdapter } from "@connectrpc/connect-node";
 import http from "node:http2";
 import forge from "node-forge";
 
-import { Health } from "./gen/grpc/health/v1/health_connect.js";
-import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
-import { GRPCStdio } from "./gen/plugin/grpc_stdio_connect.js";
-import { Provider } from "./gen/tfplugin6/tfplugin6.7_connect.js";
-import { generateIdentity } from "./certificate.js";
-import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
+import { Health } from "../gen/grpc/health/v1/health_connect.js";
+import { HealthCheckResponse_ServingStatus } from "../gen/grpc/health/v1/health_pb.js";
+import { GRPCStdio } from "../gen/plugin/grpc_stdio_connect.js";
+import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
+import { generateIdentity } from "../certificate.js";
+import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import {
   Diagnostic_Severity,
   Schema_Attribute,
   Schema_Object_NestingMode,
-} from "./gen/tfplugin6/tfplugin6.7_pb.js";
+} from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import {
   decode as msgpackDecode,
   encode as msgpackEncode,
