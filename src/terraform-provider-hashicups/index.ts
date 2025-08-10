@@ -51,109 +51,14 @@ const routes = (router: ConnectRouter) =>
       validateDataResourceConfig(req, ctx) {
         return hashicupsProvider.validateDataResourceConfig(req, ctx);
       },
-      validateResourceConfig() {
-        console.error("[ERROR] validateResourceConfig", providerInstanceId);
-        return {};
+      validateResourceConfig(req, ctx) {
+        return hashicupsProvider.validateResourceConfig(req, ctx);
       },
-      planResourceChange(req) {
-        console.error("[ERROR] planResourceChange", providerInstanceId);
-
-        try {
-          const proposed = decode(req.proposedNewState?.msgpack);
-          const prior = decode(req.priorState?.msgpack);
-
-          const same =
-            req.proposedNewState?.msgpack.length ==
-              req.priorState?.msgpack.length &&
-            req.proposedNewState?.msgpack.every(
-              (byte, index) => byte == req.priorState?.msgpack[index],
-            );
-          if (!same) {
-            proposed.id = new Unknown();
-            proposed.last_updated = new Unknown();
-            proposed.items.forEach((item: any) => {
-              item.coffee.collection = new Unknown();
-              item.coffee.color = new Unknown();
-              item.coffee.description = new Unknown();
-              item.coffee.image = new Unknown();
-              item.coffee.ingredients = new Unknown();
-              item.coffee.name = new Unknown();
-              item.coffee.origin = new Unknown();
-              item.coffee.price = new Unknown();
-              item.coffee.teaser = new Unknown();
-            });
-          }
-
-          if (prior?.id) {
-            proposed.id = prior.id;
-          }
-          proposed.items.forEach((item: any, index: number) => {
-            const priorItem = prior?.items?.[index];
-            if (item.coffee?.id === priorItem?.coffee?.id) {
-              item.coffee = priorItem.coffee;
-            }
-          });
-
-          return {
-            plannedState: { msgpack: encode(proposed) },
-          };
-        } catch (error) {
-          return {
-            diagnostics: [
-              {
-                severity: Diagnostic_Severity.ERROR,
-                detail: error?.toString() ?? "Unknown error",
-              },
-            ],
-          };
-        }
+      planResourceChange(req, ctx) {
+        return hashicupsProvider.planResourceChange(req, ctx);
       },
-      async applyResourceChange(req) {
-        console.error("[ERROR] applyResourceChange", providerInstanceId);
-
-        const config = decode(req.config?.msgpack);
-        const prior = decode(req.priorState?.msgpack);
-
-        try {
-          if (prior == null) {
-            const order = await hashicupsProvider.state.createOrder(
-              config.items,
-            );
-            return {
-              newState: {
-                msgpack: encode({
-                  ...order,
-                  last_updated: new Date().toISOString(),
-                }),
-              },
-            };
-          } else if (config != null) {
-            await hashicupsProvider.state.updateOrder(prior.id, config.items);
-            const order = await hashicupsProvider.state.getOrder(prior.id);
-            return {
-              newState: {
-                msgpack: encode({
-                  ...order,
-                  last_updated: new Date().toISOString(),
-                }),
-              },
-            };
-          } else {
-            await hashicupsProvider.state.deleteOrder(prior.id);
-            return {
-              newState: { msgpack: encode(null) },
-            };
-          }
-        } catch (error) {
-          return {
-            diagnostics: [
-              {
-                severity: Diagnostic_Severity.ERROR,
-                detail: error?.toString() ?? "Unknown error",
-              },
-            ],
-          };
-        }
+      applyResourceChange(req, ctx) {
+        return hashicupsProvider.applyResourceChange(req, ctx);
       },
       upgradeResourceState(req) {
         console.error("[ERROR] upgradeResourceState", providerInstanceId);

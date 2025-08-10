@@ -1,6 +1,8 @@
 import type {
+  ApplyResourceChange_Request,
   ConfigureProvider_Request,
   ConfigureProvider_Response,
+  PlanResourceChange_Request,
   ReadDataSource_Request,
   ValidateProviderConfig_Request,
   ValidateProviderConfig_Response,
@@ -12,13 +14,16 @@ import { decode } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import type { PartialMessage } from "@bufbuild/protobuf";
 import { datasource, type DataSource, type IDataSource } from "./datasource.js";
+import { resource, type IResource, type Resource } from "./resource.js";
 
 interface IProvider<
   TProviderSchema extends Schema,
   TDataSourcesSchema extends Record<string, Schema>,
+  TResourcesSchema extends Record<string, Schema>,
   TState,
   TName extends string,
 > {
+  name: TName;
   schema: TProviderSchema;
   configure: (
     config: ConfigFor<TProviderSchema>,
@@ -33,14 +38,24 @@ interface IProvider<
     [TDataSourceName in keyof TDataSourcesSchema]: IDataSource<
       TDataSourcesSchema[TDataSourceName],
       NoInfer<TState>
-    > &
+    > /*&
       (TDataSourceName extends `${NoInfer<TName>}_${string}`
         ? object
         : {
             error: `Your data source name should start with ${TName}_`;
-          });
+          })*/;
   };
-  name: TName;
+  resources: {
+    [TResourceName in keyof TResourcesSchema]: IResource<
+      TResourcesSchema[TResourceName],
+      NoInfer<TState>
+    > /*&
+      (TResourceName extends `${NoInfer<TName>}_${string}`
+        ? object
+        : {
+            error: `Your resource name should start with ${TName}_`;
+          })*/;
+  };
 }
 
 export interface ProviderForResources<TState> {
@@ -51,10 +66,17 @@ export interface ProviderForResources<TState> {
 export const provider = <
   TProviderSchema extends Schema,
   TDataSourcesSchema extends Record<string, Schema>,
+  TResourcesSchema extends Record<string, Schema>,
   TState,
   TName extends string,
 >(
-  args: IProvider<TProviderSchema, TDataSourcesSchema, TState, TName>,
+  args: IProvider<
+    TProviderSchema,
+    TDataSourcesSchema,
+    TResourcesSchema,
+    TState,
+    TName
+  >,
 ) => {
   const providerInstanceId = Math.floor(Math.random() * 1000);
   type ProviderConfig = ConfigFor<TProviderSchema>;
@@ -72,6 +94,12 @@ export const provider = <
     Object.entries(args.datasources).map(([name, datasourceInput]) => [
       name,
       datasource(providerInput, datasourceInput),
+    ]),
+  );
+  const resources: Record<string, Resource> = Object.fromEntries(
+    Object.entries(args.resources).map(([name, resourceInput]) => [
+      name,
+      resource(providerInput, resourceInput),
     ]),
   );
 
@@ -116,6 +144,28 @@ export const provider = <
     async readDataSource(req: ReadDataSource_Request, ctx: HandlerContext) {
       const datasource = datasources[req.typeName];
       return datasource!.readDataSource(req, ctx);
+    },
+
+    async validateResourceConfig(
+      req: ValidateResourceConfig_Request,
+      ctx: HandlerContext,
+    ) {
+      const resource = resources[req.typeName];
+      return resource!.validateResourceConfig(req, ctx);
+    },
+    async planResourceChange(
+      req: PlanResourceChange_Request,
+      ctx: HandlerContext,
+    ) {
+      const resource = resources[req.typeName];
+      return resource!.planResourceChange(req, ctx);
+    },
+    async applyResourceChange(
+      req: ApplyResourceChange_Request,
+      ctx: HandlerContext,
+    ) {
+      const resource = resources[req.typeName];
+      return resource!.applyResourceChange(req, ctx);
     },
   };
 };

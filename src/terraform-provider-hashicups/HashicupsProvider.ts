@@ -3,7 +3,7 @@ import { schema, tf, withDescription } from "./attributes.js";
 import { provider } from "./provider.js";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
-import { encode } from "./codec.js";
+import { encode, Unknown } from "./codec.js";
 
 const coffeeAttributes = {
   collection: tf.computed.string(),
@@ -157,6 +157,83 @@ export const hashicupsProvider = provider({
                   severity: Diagnostic_Severity.ERROR,
                 },
               ],
+            };
+          }
+        });
+      },
+    },
+  },
+  resources: {
+    hashicups_order: {
+      schema: providerSchema.resourceSchemas.hashicups_order,
+      validate() {
+        return Effect.sync(() => ({}));
+      },
+      plan(
+        { proposedNewState, priorState, proposedNewStateIsPriorState },
+        _client,
+      ) {
+        return Effect.promise(async () => {
+          if (!proposedNewStateIsPriorState) {
+            // @ts-expect-error not able to assign Unknown to number
+            proposedNewState.id = new Unknown();
+            // @ts-expect-error not able to assign Unknown to number
+            proposedNewState.last_updated = new Unknown();
+            proposedNewState.items.forEach((item: any) => {
+              item.coffee.collection = new Unknown();
+              item.coffee.color = new Unknown();
+              item.coffee.description = new Unknown();
+              item.coffee.image = new Unknown();
+              item.coffee.ingredients = new Unknown();
+              item.coffee.name = new Unknown();
+              item.coffee.origin = new Unknown();
+              item.coffee.price = new Unknown();
+              item.coffee.teaser = new Unknown();
+            });
+          }
+
+          if (priorState?.id) {
+            proposedNewState.id = priorState.id;
+          }
+          proposedNewState.items.forEach((item: any, index: number) => {
+            const priorItem = priorState?.items?.[index];
+            if (item.coffee?.id === priorItem?.coffee?.id) {
+              item.coffee = priorItem?.coffee;
+            }
+          });
+
+          return {
+            plannedState: { msgpack: encode(proposedNewState) },
+          };
+        });
+      },
+      apply({ config, priorState: prior }, client) {
+        return Effect.promise(async () => {
+          if (prior == null) {
+            const order = await client.createOrder(config.items);
+            return {
+              newState: {
+                msgpack: encode({
+                  ...order,
+                  last_updated: new Date().toISOString(),
+                }),
+              },
+            };
+          } else if (config != null) {
+            await client.updateOrder(prior.id, config.items);
+            const order = await client.getOrder(prior.id);
+            return {
+              newState: {
+                msgpack: encode({
+                  ...order,
+                  last_updated: new Date().toISOString(),
+                }),
+              },
+            };
+          } else {
+            await client.deleteOrder(prior.id);
+            return {
+              newState: { msgpack: encode(null) },
             };
           }
         });

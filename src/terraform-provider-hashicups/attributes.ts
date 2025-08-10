@@ -240,3 +240,9 @@ export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<{
     ? never
     : TField]: ConfigForAttribute<TSchema["attributes"][TField]>;
 }>;
+
+export type StateFor<TSchema extends Schema> = ForceTypescriptComputation<{
+  [TField in keyof TSchema["attributes"]]: ConfigForAttribute<
+    TSchema["attributes"][TField]
+  >;
+}>;
