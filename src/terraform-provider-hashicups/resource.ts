@@ -19,8 +19,16 @@ interface PlanRequest<TResourceSchema extends Schema> {
   priorState: NoInfer<StateFor<TResourceSchema>>;
   proposedNewStateIsPriorState: boolean;
 }
-interface ApplyRequest<TResourceSchema extends Schema> {
+interface CreateRequest<TResourceSchema extends Schema> {
   config: ConfigFor<TResourceSchema>;
+  priorState: null;
+}
+interface UpdateRequest<TResourceSchema extends Schema> {
+  config: ConfigFor<TResourceSchema>;
+  priorState: NoInfer<StateFor<TResourceSchema>>;
+}
+interface DeleteRequest<TResourceSchema extends Schema> {
+  config: null;
   priorState: NoInfer<StateFor<TResourceSchema>>;
 }
 
@@ -34,8 +42,17 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     req: NoInfer<PlanRequest<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<PartialMessage<PlanResourceChange_Response>>;
-  apply: (
-    req: NoInfer<ApplyRequest<TResourceSchema>>,
+
+  create: (
+    req: NoInfer<CreateRequest<TResourceSchema>>,
+    providerState: TProviderState,
+  ) => Effect.Effect<PartialMessage<ApplyResourceChange_Response>>;
+  update: (
+    req: NoInfer<UpdateRequest<TResourceSchema>>,
+    providerState: TProviderState,
+  ) => Effect.Effect<PartialMessage<ApplyResourceChange_Response>>;
+  delete: (
+    req: NoInfer<DeleteRequest<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<PartialMessage<ApplyResourceChange_Response>>;
 }
@@ -77,7 +94,7 @@ export const resource = <TResourceSchema extends Schema, TState>(
       );
       const same =
         req.proposedNewState?.msgpack.length ==
-          req.priorState?.msgpack.length &&
+        req.priorState?.msgpack.length &&
         req.proposedNewState?.msgpack.every(
           (byte, index) => byte == req.priorState?.msgpack[index],
         );
@@ -96,6 +113,7 @@ export const resource = <TResourceSchema extends Schema, TState>(
         },
       );
     },
+
     async applyResourceChange(
       req: ApplyResourceChange_Request,
       ctx: HandlerContext,
@@ -103,11 +121,18 @@ export const resource = <TResourceSchema extends Schema, TState>(
       console.error("[ERROR] applyResourceChange", provider.providerInstanceId);
       const config: ResourceConfig = decode(req.config!.msgpack);
       const priorState: ResourceState = decode(req.priorState!.msgpack);
+
       return await Effect.runPromise(
-        args.apply({ config, priorState }, provider.state),
-        {
-          signal: ctx.signal,
-        },
+        Effect.gen(function*() {
+          if (priorState == null) {
+            return yield* args.create({ config, priorState: null }, provider.state);
+          } else if (config != null) {
+            return yield* args.update({ config, priorState }, provider.state);
+          } else {
+            return yield* args.delete({ config: null, priorState }, provider.state);
+          }
+        }),
+        { signal: ctx.signal },
       );
     },
   };

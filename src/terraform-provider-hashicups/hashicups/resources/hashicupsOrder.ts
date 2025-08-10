@@ -70,35 +70,40 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
     });
   },
 
-  apply({ config, priorState: prior }, client) {
+  create({ config }, client) {
     return Effect.promise(async () => {
-      if (prior == null) {
-        const order = await client.createOrder(config.items);
-        return {
-          newState: {
-            msgpack: encode({
-              ...order,
-              last_updated: new Date().toISOString(),
-            }),
-          },
-        };
-      } else if (config != null) {
-        await client.updateOrder(prior.id, config.items);
-        const order = await client.getOrder(prior.id);
-        return {
-          newState: {
-            msgpack: encode({
-              ...order,
-              last_updated: new Date().toISOString(),
-            }),
-          },
-        };
-      } else {
-        await client.deleteOrder(prior.id);
-        return {
-          newState: { msgpack: encode(null) },
-        };
-      }
+      const order = await client.createOrder(config.items);
+      return {
+        newState: {
+          msgpack: encode({
+            ...order,
+            last_updated: new Date().toISOString(),
+          }),
+        },
+      };
     });
   },
+  update({ config, priorState: prior }, client) {
+    return Effect.promise(async () => {
+      await client.updateOrder(prior.id, config.items);
+      const order = await client.getOrder(prior.id);
+      return {
+        newState: {
+          msgpack: encode({
+            ...order,
+            last_updated: new Date().toISOString(),
+          }),
+        },
+      };
+    });
+  },
+  delete({ priorState: prior }, client) {
+    return Effect.promise(async () => {
+      await client.deleteOrder(prior.id);
+      return {
+        newState: { msgpack: encode(null) },
+      };
+    });
+  },
+
 });
