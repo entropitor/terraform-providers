@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { schema, tf } from "../../attributes.js";
 import { hashicupsProviderBuilder } from "../builder.js";
-import { encode, Unknown } from "../../codec.js";
+import { Unknown } from "../../codec.js";
 
 export const hashicupsOrder = hashicupsProviderBuilder.resource({
   schema: schema({
@@ -26,7 +26,6 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
       quantity: tf.required.number(),
     }),
   }),
-
 
   plan(
     { proposedNewState, priorState, proposedNewStateIsPriorState },
@@ -61,9 +60,7 @@ export const hashicupsOrder = hashicupsProviderBuilder.resource({
         }
       });
 
-      return {
-        plannedState: { msgpack: encode(proposedNewState) },
-      };
+      return { plannedState: proposedNewState };
     });
   },
 

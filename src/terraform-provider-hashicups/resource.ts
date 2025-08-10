@@ -2,11 +2,9 @@ import type { ConfigFor, StateFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode, encode } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
-import type { PartialMessage } from "@bufbuild/protobuf";
 import type {
   ApplyResourceChange_Request,
   PlanResourceChange_Request,
-  PlanResourceChange_Response,
   ValidateDataResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
@@ -31,6 +29,10 @@ interface DeleteRequest<TResourceSchema extends Schema> {
   priorState: StateFor<TResourceSchema>;
 }
 
+interface PlanResponse<TResourceSchema extends Schema> {
+  plannedState: StateFor<TResourceSchema>;
+}
+
 interface CreateResponse<TResourceSchema extends Schema> {
   newState: StateFor<TResourceSchema>;
 }
@@ -48,7 +50,11 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
   plan: (
     req: NoInfer<PlanRequest<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<PartialMessage<PlanResourceChange_Response>>;
+  ) => Effect.Effect<
+    NoInfer<PlanResponse<TResourceSchema>>,
+    never,
+    Diagnostics
+  >;
 
   create: (
     req: NoInfer<CreateRequest<TResourceSchema>>,
@@ -124,15 +130,22 @@ export const resource = <TResourceSchema extends Schema, TState>(
           (byte, index) => byte == req.priorState?.msgpack[index],
         );
       return await Effect.runPromise(
-        args.plan(
-          {
-            config,
-            priorState,
-            proposedNewState,
-            proposedNewStateIsPriorState: same ?? false,
-          },
-          provider.state,
-        ),
+        args
+          .plan(
+            {
+              config,
+              priorState,
+              proposedNewState,
+              proposedNewStateIsPriorState: same ?? false,
+            },
+            provider.state,
+          )
+          .pipe(
+            Effect.map((response) => ({
+              plannedState: { msgpack: encode(response.plannedState) },
+            })),
+            withDiagnostics(),
+          ),
         {
           signal: ctx.signal,
         },
