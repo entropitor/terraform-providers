@@ -36,26 +36,26 @@ export const hashicupsProviderBuilder = providerBuilder({
     });
   },
 
-  validate(config) {
+  validate({ config: _config }) {
     return Effect.promise(async () => {
-      if (!config.host.startsWith("https://")) {
-        return {
-          diagnostics: [
-            // {
-            //   severity: Diagnostic_Severity.WARNING,
-            //   summary: "Unsafe protocol",
-            //   detail:
-            //     "You are using an unsafe protocol. It will be better if you would set this to https://",
-            //   attribute: {
-            //     steps: [
-            //       { selector: { case: "attributeName", value: "host" } },
-            //     ],
-            //   },
-            // },
-          ],
-        };
-      }
       return {};
+      // if (!config.host.startsWith("https://")) {
+      //   return {
+      //     diagnostics: [
+      //       {
+      //         severity: Diagnostic_Severity.WARNING,
+      //         summary: "Unsafe protocol",
+      //         detail:
+      //           "You are using an unsafe protocol. It will be better if you would set this to https://",
+      //         attribute: {
+      //           steps: [
+      //             { selector: { case: "attributeName", value: "host" } },
+      //           ],
+      //         },
+      //       },
+      //     ],
+      //   };
+      // }
     });
   },
 });

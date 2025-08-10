@@ -1,7 +1,4 @@
-import type {
-  ConfigureProvider_Response,
-  ValidateProviderConfig_Response,
-} from "../gen/tfplugin6/tfplugin6.7_pb.js";
+import type { ConfigureProvider_Response } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { Provider as TerraformProvider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import type { ConfigFor, Schema } from "./attributes.js";
 import { toTerraformSchema } from "./attributes.js";
@@ -13,8 +10,14 @@ import { datasource, type DataSource, type IDataSource } from "./datasource.js";
 import { resource, type IResource, type Resource } from "./resource.js";
 import type { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { serveProvider } from "./serve.js";
+import { withDiagnostics, type Diagnostics } from "./diagnostics.js";
 
-interface IProvider<
+interface ValidateRequest<TProviderSchema extends Schema> {
+  config: ConfigFor<TProviderSchema>;
+}
+interface ValidateResponse<_TProviderSchema extends Schema> {}
+
+export interface IProvider<
   TProviderSchema extends Schema,
   TInternalState,
   TName extends string,
@@ -27,8 +30,12 @@ interface IProvider<
     { $state: TInternalState } & PartialMessage<ConfigureProvider_Response>
   >;
   validate: (
-    config: ConfigFor<TProviderSchema>,
-  ) => Effect.Effect<PartialMessage<ValidateProviderConfig_Response>>;
+    req: NoInfer<ValidateRequest<TProviderSchema>>,
+  ) => Effect.Effect<
+    void | NoInfer<ValidateResponse<TProviderSchema>>,
+    never,
+    Diagnostics
+  >;
 }
 
 export interface ProviderForResources<TState> {
@@ -45,18 +52,7 @@ class ProviderBuilder<
   TName extends string,
 > {
   constructor(
-    readonly provider: {
-      name: TName;
-      schema: TProviderSchema;
-      configure: (
-        config: ConfigFor<TProviderSchema>,
-      ) => Effect.Effect<
-        { $state: TInternalState } & PartialMessage<ConfigureProvider_Response>
-      >;
-      validate: (
-        config: ConfigFor<TProviderSchema>,
-      ) => Effect.Effect<PartialMessage<ValidateProviderConfig_Response>>;
-    },
+    readonly provider: IProvider<TProviderSchema, TInternalState, TName>,
   ) {}
 
   resource<TResourceSchema extends Schema>(
@@ -129,10 +125,18 @@ class ProviderBuilder<
 
       async validateProviderConfig(req, ctx) {
         console.error("[ERROR] validateProviderConfig", providerInstanceId);
-        const decoded: ProviderConfig = decode(req.config!.msgpack);
-        return await Effect.runPromise(provider.validate(decoded), {
-          signal: ctx.signal,
-        });
+        if (provider.validate == null) {
+          return {};
+        }
+
+        const config: ProviderConfig = decode(req.config!.msgpack);
+        return await Effect.runPromise(
+          provider.validate({ config }).pipe(
+            Effect.map(() => ({})),
+            withDiagnostics(),
+          ),
+          { signal: ctx.signal },
+        );
       },
       async configureProvider(req, ctx) {
         console.error("[ERROR] configureProvider", providerInstanceId);
