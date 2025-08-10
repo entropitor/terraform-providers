@@ -11,6 +11,7 @@ import type {
   ValidateResourceConfig_Request,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ConfigFor, Schema } from "./attributes.js";
+import { toTerraformSchema } from "./attributes.js";
 import { Effect } from "effect";
 import { decode } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
@@ -109,18 +110,21 @@ class ProviderBuilder<
       providerInstanceId,
       providerSchema: provider.schema,
 
-      getSchema() {
+      getProviderSchema() {
+        console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
-          provider: provider.schema,
+          provider: toTerraformSchema(provider.schema),
           resourceSchemas: Object.fromEntries(
-            Object.entries(resources).map(
-              ([name, resource]) => [name, resource.schema] as const,
-            ),
+            Object.entries(resources).map(([name, resource]) => [
+              name,
+              toTerraformSchema(resource.schema),
+            ]),
           ),
           dataSourceSchemas: Object.fromEntries(
-            Object.entries(datasources).map(
-              ([name, datasource]) => [name, datasource.schema] as const,
-            ),
+            Object.entries(datasources).map(([name, datasource]) => [
+              name,
+              toTerraformSchema(datasource.schema),
+            ]),
           ),
         };
       },

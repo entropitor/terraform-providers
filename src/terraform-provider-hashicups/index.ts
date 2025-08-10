@@ -9,7 +9,6 @@ import { GRPCStdio } from "../gen/plugin/grpc_stdio_connect.js";
 import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
-import { toTerraformSchema } from "./attributes.js";
 import { hashicupsProvider } from "./hashicups/HashicupsProvider.js";
 
 const providerInstanceId = hashicupsProvider.providerInstanceId;
@@ -51,21 +50,7 @@ const routes = (router: ConnectRouter) =>
         return hashicupsProvider.readResource(req, ctx);
       },
       getProviderSchema(_req) {
-        console.error("[ERROR] getProviderSchema", providerInstanceId);
-        const providerSchema = hashicupsProvider.getSchema();
-        return {
-          provider: hashicupsProvider.providerSchema.toTerraformSchema(),
-          resourceSchemas: Object.fromEntries(
-            Object.entries(providerSchema.resourceSchemas).map(
-              ([name, schema]) => [name, toTerraformSchema(schema)],
-            ),
-          ),
-          dataSourceSchemas: Object.fromEntries(
-            Object.entries(providerSchema.dataSourceSchemas).map(
-              ([name, schema]) => [name, toTerraformSchema(schema)],
-            ),
-          ),
-        };
+        return hashicupsProvider.getProviderSchema();
       },
     })
     .service(GRPCController, {
