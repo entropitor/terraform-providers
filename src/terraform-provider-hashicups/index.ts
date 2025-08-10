@@ -10,13 +10,12 @@ import { Provider } from "../gen/tfplugin6/tfplugin6.7_connect.js";
 import { generateIdentity } from "../certificate.js";
 import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
 import { Diagnostic_Severity } from "../gen/tfplugin6/tfplugin6.7_pb.js";
-import { toTerraformSchema, type ConfigFor } from "./attributes.js";
+import { toTerraformSchema } from "./attributes.js";
 import { hashicupsProvider, providerSchema } from "./HashicupsProvider.js";
 import { encode, decode, Unknown } from "./codec.js";
 
 const providerInstanceId = hashicupsProvider.providerInstanceId;
 
-type ProviderConfig = ConfigFor<typeof hashicupsProvider.providerSchema>;
 const routes = (router: ConnectRouter) =>
   router
     .service(Provider, {
@@ -79,27 +78,8 @@ const routes = (router: ConnectRouter) =>
           };
         }
       },
-      validateProviderConfig(req) {
-        console.error("[ERROR] validateProviderConfig", providerInstanceId);
-        const decoded: ProviderConfig = decode(req.config!.msgpack);
-        if (!decoded.host.startsWith("https://")) {
-          return {
-            diagnostics: [
-              // {
-              //   severity: Diagnostic_Severity.WARNING,
-              //   summary: "Unsafe protocol",
-              //   detail:
-              //     "You are using an unsafe protocol. It will be better if you would set this to https://",
-              //   attribute: {
-              //     steps: [
-              //       { selector: { case: "attributeName", value: "host" } },
-              //     ],
-              //   },
-              // },
-            ],
-          };
-        }
-        return {};
+      validateProviderConfig(req, ctx) {
+        return hashicupsProvider.validateProviderConfig(req, ctx);
       },
       validateDataResourceConfig() {
         console.error("[ERROR] validateDataResourceConfig", providerInstanceId);

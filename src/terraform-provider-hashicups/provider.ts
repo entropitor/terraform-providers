@@ -1,6 +1,8 @@
 import type {
   ConfigureProvider_Request,
   ConfigureProvider_Response,
+  ValidateProviderConfig_Request,
+  ValidateProviderConfig_Response,
 } from "../gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ConfigFor, Schema } from "./attributes.js";
 import { Effect } from "effect";
@@ -18,6 +20,9 @@ interface IProvider<
   ) => Effect.Effect<
     { $state: TState } & PartialMessage<ConfigureProvider_Response>
   >;
+  validate: (
+    config: ConfigFor<TProviderSchema>,
+  ) => Effect.Effect<PartialMessage<ValidateProviderConfig_Response>>;
 }
 
 export const provider = <TState extends object, TProviderSchema extends Schema>(
@@ -34,6 +39,16 @@ export const provider = <TState extends object, TProviderSchema extends Schema>(
     providerInstanceId,
     providerSchema: args.schema,
 
+    async validateProviderConfig(
+      req: ValidateProviderConfig_Request,
+      ctx: HandlerContext,
+    ) {
+      console.error("[ERROR] validateProviderConfig", providerInstanceId);
+      const decoded: ProviderConfig = decode(req.config!.msgpack);
+      return await Effect.runPromise(args.validate(decoded), {
+        signal: ctx.signal,
+      });
+    },
     async configureProvider(
       req: ConfigureProvider_Request,
       ctx: HandlerContext,
