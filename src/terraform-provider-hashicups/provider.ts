@@ -35,6 +35,9 @@ export interface ProviderForResources<TState> {
   providerInstanceId: number;
 }
 
+export type BuiltProvider = Partial<ServiceImpl<typeof TerraformProvider>> &
+  ServiceImpl<typeof GRPCController>;
+
 class ProviderBuilder<
   TProviderSchema extends Schema,
   TInternalState,
@@ -69,8 +72,7 @@ class ProviderBuilder<
   build(args: {
     resources: Record<string, IResource<any, TInternalState>>;
     datasources: Record<string, IDataSource<any, TInternalState>>;
-  }): Partial<ServiceImpl<typeof TerraformProvider>> &
-    ServiceImpl<typeof GRPCController> {
+  }): BuiltProvider {
     const providerInstanceId = Math.floor(Math.random() * 1000);
     type ProviderConfig = ConfigFor<TProviderSchema>;
 
