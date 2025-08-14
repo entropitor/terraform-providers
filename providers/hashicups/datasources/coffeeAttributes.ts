@@ -1,4 +1,4 @@
-import { tf } from "../../provider-sdk/attributes.js";
+import { tf } from "../../../libs/provider-sdk/attributes.js";
 
 export const coffeeAttributes = {
   collection: tf.computed.string(),

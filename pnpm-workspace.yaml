@@ -1,2 +1,2 @@
 packages:
-  - src/terraform-provider-coolify
+  - providers/coolify

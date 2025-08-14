@@ -51,7 +51,7 @@ importers:
         specifier: ^3.6.2
         version: 3.6.2
 
-  src/terraform-provider-coolify:
+  providers/coolify:
     dependencies:
       effect:
         specifier: ^3.14.6

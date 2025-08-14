@@ -1,8 +1,11 @@
 import { Effect } from "effect";
-import { schema, tf } from "../provider-sdk/attributes.js";
-import { providerBuilder } from "../provider-sdk/provider.js";
+import { schema, tf } from "../../libs/provider-sdk/attributes.js";
+import { providerBuilder } from "../../libs/provider-sdk/provider.js";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
-import { Diagnostics, diagnosticsPath } from "../provider-sdk/diagnostics.js";
+import {
+  Diagnostics,
+  diagnosticsPath,
+} from "../../libs/provider-sdk/diagnostics.js";
 
 export const hashicupsProviderBuilder = providerBuilder({
   name: "hashicups",

@@ -1,7 +1,7 @@
 import { Effect } from "effect";
-import { schema, tf } from "../../provider-sdk/attributes.js";
+import { schema, tf } from "../../../libs/provider-sdk/attributes.js";
 import { coolifyProviderBuilder } from "../builder.js";
-import { Diagnostics } from "../../provider-sdk/diagnostics.js";
+import { Diagnostics } from "../../../libs/provider-sdk/diagnostics.js";
 import { effectify } from "../effectify.js";
 
 export const coolifyProject = coolifyProviderBuilder.resource({

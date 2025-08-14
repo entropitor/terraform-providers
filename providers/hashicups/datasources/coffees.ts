@@ -1,5 +1,9 @@
 import { Effect } from "effect";
-import { schema, tf, withDescription } from "../../provider-sdk/attributes.js";
+import {
+  schema,
+  tf,
+  withDescription,
+} from "../../../libs/provider-sdk/attributes.js";
 import { hashicupsProviderBuilder } from "../builder.js";
 import { coffeeAttributes } from "./coffeeAttributes.js";
 
