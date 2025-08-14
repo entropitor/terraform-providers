@@ -11,7 +11,7 @@ import {
   type PlanResourceChange_Request,
   type ReadResource_Request,
   type ValidateDataResourceConfig_Request,
-} from "../gen/tfplugin6/tfplugin6.7_pb.js";
+} from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
 import {
   DiagnosticError,

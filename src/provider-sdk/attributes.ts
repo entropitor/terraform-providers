@@ -3,7 +3,7 @@ import {
   Schema as TerraformSchema,
   Schema_Attribute,
   Schema_Object_NestingMode,
-} from "../gen/tfplugin6/tfplugin6.7_pb.js";
+} from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import { pipeArguments, type Pipeable } from "effect/Pipeable";
 import type { PartialMessage } from "@bufbuild/protobuf";
 import type { ForceTypescriptComputation } from "../utils/ForceTypescriptComputation.js";

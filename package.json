@@ -13,7 +13,7 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "generate": "buf generate",
+    "generate": "buf generate src/hashicorp-plugin/protos --output src/hashicorp-plugin && buf generate src/provider-sdk/protos --output src/provider-sdk && buf generate src/kv-plugin/protos --output src/kv-plugin",
     "types": "tsc -b src",
     "prettier": "prettier --write ."
   },

@@ -2,7 +2,7 @@ import { Effect, pipe } from "effect";
 import {
   AttributePath as TerraformAttributePath,
   AttributePath_Step,
-} from "../gen/tfplugin6/tfplugin6.7_pb.js";
+} from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import type { PartialMessage } from "@bufbuild/protobuf";
 
 export type AttributePath = Array<AttributePath_Step["selector"]>;

@@ -3,7 +3,7 @@ import {
   AttributePath_Step,
   Diagnostic_Severity,
   type Diagnostic,
-} from "../gen/tfplugin6/tfplugin6.7_pb.js";
+} from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import type { PartialMessage } from "@bufbuild/protobuf";
 
 export type DiagnosticPath = Array<AttributePath_Step["selector"]>;

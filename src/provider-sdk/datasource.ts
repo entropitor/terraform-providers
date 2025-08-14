@@ -5,7 +5,7 @@ import type { HandlerContext } from "@connectrpc/connect";
 import type {
   ReadDataSource_Request,
   ValidateDataResourceConfig_Request,
-} from "../gen/tfplugin6/tfplugin6.7_pb.js";
+} from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
 import {
   DiagnosticError,

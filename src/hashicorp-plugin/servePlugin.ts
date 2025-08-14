@@ -3,11 +3,11 @@ import { connectNodeAdapter } from "@connectrpc/connect-node";
 import http2 from "node:http2";
 import forge from "node-forge";
 
-import { Health } from "../gen/grpc/health/v1/health_connect.js";
-import { HealthCheckResponse_ServingStatus } from "../gen/grpc/health/v1/health_pb.js";
-import { GRPCStdio } from "../gen/plugin/grpc_stdio_connect.js";
+import { Health } from "./gen/grpc/health/v1/health_connect.js";
+import { HealthCheckResponse_ServingStatus } from "./gen/grpc/health/v1/health_pb.js";
+import { GRPCStdio } from "./gen/plugin/grpc_stdio_connect.js";
 import { generateIdentity } from "./certificate.js";
-import { GRPCController } from "../gen/plugin/grpc_controller_connect.js";
+import { GRPCController } from "./gen/plugin/grpc_controller_connect.js";
 import assert from "node:assert";
 
 export type HashicorpPlugin = {
