@@ -1,11 +1,12 @@
 import { Effect } from "effect";
-import { schema, tf } from "../../libs/provider-sdk/attributes.js";
-import { providerBuilder } from "../../libs/provider-sdk/provider.js";
-import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 import {
+  schema,
+  tf,
+  providerBuilder,
   Diagnostics,
   diagnosticsPath,
-} from "../../libs/provider-sdk/diagnostics.js";
+} from "@entropitor/terraform-provider-sdk";
+import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 
 export const hashicupsProviderBuilder = providerBuilder({
   name: "hashicups",

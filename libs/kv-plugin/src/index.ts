@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { KV } from "./gen/proto/kv_connect.js";
-import { servePlugin } from "../hashicorp-plugin/servePlugin.js";
+import { servePlugin } from "@entropitor/hashicorp-plugin";
 
 servePlugin({
   magicCookie: {

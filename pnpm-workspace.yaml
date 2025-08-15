@@ -1,2 +1,3 @@
 packages:
-  - providers/coolify
+  - libs/*
+  - providers/*

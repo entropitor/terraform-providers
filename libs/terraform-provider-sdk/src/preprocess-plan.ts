@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { unreachable } from "../utils/unreachable.js";
+import { unreachable } from "./utils/unreachable.js";
 import {
   UnionAttribute,
   type Attribute,

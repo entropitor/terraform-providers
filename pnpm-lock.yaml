@@ -51,8 +51,44 @@ importers:
         specifier: ^3.6.2
         version: 3.6.2
 
+  libs/hashicorp-plugin:
+    dependencies:
+      effect:
+        specifier: ^3.14.6
+        version: 3.14.6
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  libs/kv-plugin:
+    dependencies:
+      "@entropitor/hashicorp-plugin":
+        specifier: workspace:^
+        version: link:../hashicorp-plugin
+      effect:
+        specifier: ^3.14.6
+        version: 3.14.6
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  libs/terraform-provider-sdk:
+    dependencies:
+      "@entropitor/hashicorp-plugin":
+        specifier: workspace:^
+        version: link:../hashicorp-plugin
+      effect:
+        specifier: ^3.14.6
+        version: 3.14.6
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   providers/coolify:
     dependencies:
+      "@entropitor/terraform-provider-sdk":
+        specifier: workspace:^
+        version: link:../../libs/terraform-provider-sdk
       effect:
         specifier: ^3.14.6
         version: 3.14.6
@@ -66,6 +102,18 @@ importers:
       openapi-typescript:
         specifier: ^7.8.0
         version: 7.8.0(typescript@5.8.3)
+
+  providers/hashicups:
+    dependencies:
+      "@entropitor/terraform-provider-sdk":
+        specifier: workspace:^
+        version: link:../../libs/terraform-provider-sdk
+      effect:
+        specifier: ^3.14.6
+        version: 3.14.6
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
 
 packages:
   "@babel/code-frame@7.27.1":

@@ -1,4 +1,4 @@
-import { unreachable } from "../utils/unreachable.js";
+import { unreachable } from "./utils/unreachable.js";
 import {
   Schema as TerraformSchema,
   Schema_Attribute,
@@ -6,7 +6,7 @@ import {
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import { pipeArguments, type Pipeable } from "effect/Pipeable";
 import type { PartialMessage } from "@bufbuild/protobuf";
-import type { ForceTypescriptComputation } from "../utils/ForceTypescriptComputation.js";
+import type { ForceTypescriptComputation } from "./utils/ForceTypescriptComputation.js";
 
 type AttributeType =
   | { type: "string" }

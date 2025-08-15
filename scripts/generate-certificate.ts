@@ -1,5 +1,5 @@
 import forge from "node-forge";
-import { generateIdentity } from "../libs/hashicorp-plugin/certificate.js";
+import { generateIdentity } from "../libs/hashicorp-plugin/src/certificate.js";
 
 const { cert: serverCertificate, keys } = generateIdentity(24 * 365 * 10);
 const cert = forge.pki.certificateToPem(serverCertificate);

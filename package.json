@@ -13,7 +13,7 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "generate": "buf generate libs/hashicorp-plugin/protos --output libs/hashicorp-plugin && buf generate libs/provider-sdk/protos --output libs/provider-sdk && buf generate libs/kv-plugin/protos --output libs/kv-plugin",
+    "generate": "buf generate ./libs/hashicorp-plugin/protos --output libs/hashicorp-plugin/src && buf generate ./libs/terraform-provider-sdk/protos --output libs/terraform-provider-sdk/src && buf generate ./libs/kv-plugin/protos --output libs/kv-plugin/src",
     "types": "tsc -b tsconfig.solution.json",
     "prettier": "prettier --write ."
   },
@@ -25,5 +25,9 @@
     "@types/node-forge": "^1.3.11",
     "prettier": "^3.6.2"
   },
-  "packageManager": "pnpm@10.0.0-beta.1+sha256.04a46f912a650ef2dc835455934063bea4b8c2cfae3df3176e005b0fc34c470b"
+  "packageManager": "pnpm@10.0.0-beta.1+sha256.04a46f912a650ef2dc835455934063bea4b8c2cfae3df3176e005b0fc34c470b",
+  "workspaces": [
+    "libs/*",
+    "providers/*"
+  ]
 }

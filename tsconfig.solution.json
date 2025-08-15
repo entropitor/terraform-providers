@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
-  "references": [{ "path": "libs" }, { "path": "providers" }],
+  "references": [
+    { "path": "libs/hashicorp-plugin" },
+    { "path": "libs/kv-plugin" },
+    { "path": "libs/terraform-provider-sdk" },
+    { "path": "providers/coolify" },
+    { "path": "providers/hashicups" }
+  ],
   "include": []
 }

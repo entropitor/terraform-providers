@@ -1,4 +1,4 @@
-import { tf } from "../../../libs/provider-sdk/attributes.js";
+import { tf } from "@entropitor/terraform-provider-sdk";
 
 export const coffeeAttributes = {
   collection: tf.computed.string(),

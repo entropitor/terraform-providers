@@ -1,7 +1,6 @@
 import { Effect } from "effect";
-import { schema, tf } from "../../../libs/provider-sdk/attributes.js";
+import { schema, tf, Diagnostics } from "@entropitor/terraform-provider-sdk";
 import { coolifyProviderBuilder } from "../builder.js";
-import { Diagnostics } from "../../../libs/provider-sdk/diagnostics.js";
 import { effectify } from "../effectify.js";
 
 const serverSchema = {

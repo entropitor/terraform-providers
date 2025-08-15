@@ -1,0 +1,12 @@
+{
+  "name": "@entropitor/kv-plugin",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "dependencies": {
+    "@entropitor/hashicorp-plugin": "workspace:^",
+    "effect": "^3.14.6",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@10.0.0-beta.1+sha256.04a46f912a650ef2dc835455934063bea4b8c2cfae3df3176e005b0fc34c470b"
+}

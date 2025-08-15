@@ -1,11 +1,11 @@
 import { Effect } from "effect";
 import {
-  requiresReplacementOnChange,
   schema,
   tf,
-} from "../../../libs/provider-sdk/attributes.js";
+  Diagnostics,
+  requiresReplacementOnChange,
+} from "@entropitor/terraform-provider-sdk";
 import { coolifyProviderBuilder } from "../builder.js";
-import { Diagnostics } from "../../../libs/provider-sdk/diagnostics.js";
 import { effectify } from "../effectify.js";
 
 export const coolifyService = coolifyProviderBuilder.resource({

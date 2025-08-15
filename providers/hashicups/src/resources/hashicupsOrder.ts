@@ -1,7 +1,6 @@
 import { Effect } from "effect";
-import { schema, tf } from "../../../libs/provider-sdk/attributes.js";
+import { schema, tf, Unknown } from "@entropitor/terraform-provider-sdk";
 import { hashicupsProviderBuilder } from "../builder.js";
-import { Unknown } from "../../../libs/provider-sdk/codec.js";
 
 export const hashicupsOrder = hashicupsProviderBuilder.resource({
   schema: schema({

@@ -1,3 +1,4 @@
 #!/bin/bash
 cd "$(dirname "${BASH_SOURCE[0]}")"
-bun run src/terraform-provider-hashicups/index.ts
+pnpm run types >/dev/null 2>&1
+bun run providers/hashicups/src/index.ts

@@ -1,10 +1,11 @@
 import { Effect } from "effect";
-import { schema, tf } from "../../libs/provider-sdk/attributes.js";
-import { providerBuilder } from "../../libs/provider-sdk/provider.js";
 import {
   Diagnostics,
   diagnosticsPath,
-} from "../../libs/provider-sdk/diagnostics.js";
+  providerBuilder,
+  schema,
+  tf,
+} from "@entropitor/terraform-provider-sdk";
 import createClient from "openapi-fetch";
 import type { paths } from "./gen/coolify-api-schema.js";
 

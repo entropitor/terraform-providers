@@ -9,7 +9,7 @@ import {
   type Fields,
   type Schema,
 } from "./attributes.js";
-import { unreachable } from "../utils/unreachable.js";
+import { unreachable } from "./utils/unreachable.js";
 
 export class Unknown {
   _unknown = "UnknownValue";

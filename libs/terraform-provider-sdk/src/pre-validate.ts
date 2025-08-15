@@ -4,7 +4,7 @@ import {
   type Fields,
   type Schema,
 } from "./attributes.js";
-import { unreachable } from "../utils/unreachable.js";
+import { unreachable } from "./utils/unreachable.js";
 import { Unknown } from "./codec.js";
 import { Effect } from "effect";
 import {

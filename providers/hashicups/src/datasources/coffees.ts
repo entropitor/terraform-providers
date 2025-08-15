@@ -1,9 +1,9 @@
 import { Effect } from "effect";
 import {
-  schema,
   tf,
+  schema,
   withDescription,
-} from "../../../libs/provider-sdk/attributes.js";
+} from "@entropitor/terraform-provider-sdk";
 import { hashicupsProviderBuilder } from "../builder.js";
 import { coffeeAttributes } from "./coffeeAttributes.js";
 
