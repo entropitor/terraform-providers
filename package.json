@@ -5,6 +5,9 @@
   "scripts": {
     "generate": "buf generate ./libs/hashicorp-plugin/protos --output libs/hashicorp-plugin/src && buf generate ./libs/terraform-provider-sdk/protos --output libs/terraform-provider-sdk/src && buf generate ./libs/kv-plugin/protos --output libs/kv-plugin/src",
     "types": "tsc -b tsconfig.solution.json",
+    "check": "pnpm run types && pnpm run lint && pnpm run prettier",
+    "lint": "eslint . --ext .ts,.js,.json --cache",
+    "lint:fix": "pnpm run lint --fix",
     "prettier": "prettier --write ."
   },
   "devDependencies": {
@@ -12,10 +15,19 @@
     "@bufbuild/protobuf": "^2.6.3",
     "@bufbuild/protoc-gen-es": "^2.6.3",
     "@connectrpc/protoc-gen-connect-es": "^1.6.1",
+    "@eslint/js": "^9.33.0",
     "@tsconfig/strictest": "^2.0.5",
     "@types/node": "^24.3.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-json": "^4.0.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-perfectionist": "^4.15.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-vitest": "^0.5.4",
     "prettier": "^3.6.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.1"
   },
   "packageManager": "pnpm@10.0.0-beta.1+sha256.04a46f912a650ef2dc835455934063bea4b8c2cfae3df3176e005b0fc34c470b",
   "workspaces": [
