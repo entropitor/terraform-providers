@@ -1,6 +1,6 @@
 import type { ConnectRouter, ServiceImpl } from "@connectrpc/connect";
 
-import { Provider } from "./gen/tfplugin6/tfplugin6.7_connect.js";
+import { Provider } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import { servePlugin } from "@entropitor/hashicorp-plugin";
 
 type BuiltProvider = Partial<ServiceImpl<typeof Provider>>;

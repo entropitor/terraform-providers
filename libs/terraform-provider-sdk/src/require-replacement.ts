@@ -1,9 +1,9 @@
 import { Effect, pipe } from "effect";
 import {
-  AttributePath as TerraformAttributePath,
-  AttributePath_Step,
+  type AttributePath_Step,
+  type AttributePathSchema,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
-import type { PartialMessage } from "@bufbuild/protobuf";
+import type { MessageInitShape } from "@bufbuild/protobuf";
 
 export type AttributePath = Array<AttributePath_Step["selector"]>;
 export const attributePath = {
@@ -18,14 +18,16 @@ export const attributePath = {
     }) as const,
 };
 
-export type RequiresReplacement = PartialMessage<TerraformAttributePath>;
+export type RequiresReplacementMessage = MessageInitShape<
+  typeof AttributePathSchema
+>;
 
 export class RequiresReplacementTracker extends Effect.Tag(
   "RequiresReplacementTracker",
 )<
   RequiresReplacementTracker,
   {
-    requiresReplacements: RequiresReplacement[];
+    requiresReplacements: RequiresReplacementMessage[];
     add(path: AttributePath): void;
   }
 >() {}
@@ -45,7 +47,7 @@ export const withTrackedReplacements =
   <A extends {} | void, E extends { _tag: string }, R>(
     effect: Effect.Effect<A, E, R>,
   ): Effect.Effect<
-    readonly [A, RequiresReplacement[]],
+    readonly [A, RequiresReplacementMessage[]],
     E,
     Exclude<R, RequiresReplacementTracker>
   > =>

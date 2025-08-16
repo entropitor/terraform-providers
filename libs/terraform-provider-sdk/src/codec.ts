@@ -31,8 +31,9 @@ extensionCodec.register({
   },
 });
 const encode = (value: unknown) => msgpackEncode(value, { extensionCodec });
-export const decode = (value: unknown) =>
-  msgpackDecode(value, { extensionCodec }) as any;
+export const decode = (
+  value: ArrayBufferLike | ArrayLike<number> | ArrayBufferView<ArrayBufferLike>,
+) => msgpackDecode(value, { extensionCodec }) as any;
 
 const mapObject = (value: any, fields: Fields) => {
   if (value == null || value instanceof Unknown) {

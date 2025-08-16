@@ -1,12 +1,16 @@
 import { unreachable } from "./utils/unreachable.js";
 import {
-  Schema as TerraformSchema,
-  Schema_Attribute,
+  type SchemaSchema,
+  type Schema_Attribute,
+  type Schema_AttributeSchema,
   Schema_Object_NestingMode,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import { pipeArguments, type Pipeable } from "effect/Pipeable";
-import type { PartialMessage } from "@bufbuild/protobuf";
+import type { MessageInitShape } from "@bufbuild/protobuf";
 import type { ForceTypescriptComputation } from "./utils/ForceTypescriptComputation.js";
+
+type SchemaMessage = MessageInitShape<typeof SchemaSchema>;
+type SchemaAttributeMessage = MessageInitShape<typeof Schema_AttributeSchema>;
 
 type AttributeType =
   | { type: "string" }
@@ -129,7 +133,7 @@ const presenceFrom = (
 
 const typeFrom = (
   attr: Attribute,
-): Pick<PartialMessage<Schema_Attribute>, "type" | "nestedType"> => {
+): Pick<SchemaAttributeMessage, "type" | "nestedType"> => {
   switch (attr.type) {
     case "boolean":
       return { type: Buffer.from('"bool"') };
@@ -161,9 +165,9 @@ const typeFrom = (
 export const attributeListFrom = (
   fields: Fields,
   insideUnion: boolean = false,
-): PartialMessage<Schema_Attribute>[] => {
+): SchemaAttributeMessage[] => {
   return Object.entries(fields).flatMap(
-    ([name, attr]): PartialMessage<Schema_Attribute>[] => {
+    ([name, attr]): SchemaAttributeMessage[] => {
       if (attr instanceof UnionAttribute) {
         return attr.alternatives.flatMap((alternative: Fields) =>
           attributeListFrom(alternative, true),
@@ -185,9 +189,7 @@ export type Schema<TFields extends Fields = Fields> = {
   attributes: TFields;
   description?: string;
 };
-export const toTerraformSchema = (
-  schema: Schema,
-): PartialMessage<TerraformSchema> => {
+export const toTerraformSchema = (schema: Schema): SchemaMessage => {
   return {
     block: {
       attributes: attributeListFrom(schema.attributes),

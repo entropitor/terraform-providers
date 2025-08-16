@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { KV } from "./gen/proto/kv_connect.js";
+import { KV } from "./gen/proto/kv_pb.js";
 import { servePlugin } from "@entropitor/hashicorp-plugin";
 
 servePlugin({

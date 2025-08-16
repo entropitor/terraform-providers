@@ -4,13 +4,13 @@ import { decode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
 import {
   Diagnostic_Severity,
-  PlanResourceChange_Response,
   type ApplyResourceChange_Request,
   type ImportResourceState_Request,
-  type ImportResourceState_Response,
   type PlanResourceChange_Request,
   type ReadResource_Request,
-  type ValidateDataResourceConfig_Request,
+  type ImportResourceState_ResponseSchema,
+  type PlanResourceChange_ResponseSchema,
+  type ValidateResourceConfig_Request,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import type { ProviderForResources } from "./provider.js";
 import {
@@ -19,7 +19,7 @@ import {
   withDiagnostics,
 } from "./diagnostics.js";
 import { preprocessPlan } from "./preprocess-plan.js";
-import type { PartialMessage } from "@bufbuild/protobuf";
+import type { MessageInitShape } from "@bufbuild/protobuf";
 import { preValidateSchema } from "./pre-validate.js";
 import {
   withTrackedReplacements,
@@ -140,7 +140,7 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     schema: resource.schema,
 
     async validateResourceConfig(
-      req: ValidateDataResourceConfig_Request,
+      req: ValidateResourceConfig_Request,
       ctx: HandlerContext,
     ) {
       console.error(
@@ -165,7 +165,7 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     async planResourceChange(
       req: PlanResourceChange_Request,
       ctx: HandlerContext,
-    ): Promise<PartialMessage<PlanResourceChange_Response>> {
+    ): Promise<MessageInitShape<typeof PlanResourceChange_ResponseSchema>> {
       console.error("[ERROR] planResourceChange", provider.providerInstanceId);
 
       const [response, requiresReplace] = await Effect.runPromise(
@@ -289,7 +289,7 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     async importResource(
       req: ImportResourceState_Request,
       ctx: HandlerContext,
-    ): Promise<PartialMessage<ImportResourceState_Response>> {
+    ): Promise<MessageInitShape<typeof ImportResourceState_ResponseSchema>> {
       console.error("[ERROR] importResourceState", provider.providerInstanceId);
 
       if (resource.import == null) {

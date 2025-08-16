@@ -1,10 +1,10 @@
 import { Effect, pipe } from "effect";
 import {
-  AttributePath_Step,
+  type AttributePath_Step,
   Diagnostic_Severity,
-  type Diagnostic,
+  type DiagnosticSchema,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
-import type { PartialMessage } from "@bufbuild/protobuf";
+import type { MessageInitShape } from "@bufbuild/protobuf";
 
 export type DiagnosticPath = Array<AttributePath_Step["selector"]>;
 export const diagnosticsPath = {
@@ -24,7 +24,7 @@ export const pathFromDiagnostic = (
 ): DiagnosticPath | undefined =>
   diagnostic.attribute?.steps?.map((step) => step.selector!);
 
-export type DiagnosticMessage = PartialMessage<Diagnostic>;
+export type DiagnosticMessage = MessageInitShape<typeof DiagnosticSchema>;
 
 export class DiagnosticError {
   readonly _tag = "DiagnosticError";
