@@ -10,6 +10,7 @@
     "typescript": "^5.9.2"
   },
   "devDependencies": {
+    "@bufbuild/protobuf": "^2.6.3",
     "@connectrpc/connect": "^2.0.4"
   },
   "packageManager": "pnpm@10.0.0-beta.1+sha256.04a46f912a650ef2dc835455934063bea4b8c2cfae3df3176e005b0fc34c470b"

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-invalid-void-type */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { Effect } from "effect";
 
 import {
@@ -25,9 +27,9 @@ const preValidateUnion = (
   path: DiagnosticPath,
 ): Effect.Effect<undefined, DiagnosticError, Diagnostics> => {
   return Effect.gen(function* () {
-    const validateAlternativeEffects: Array<Effect.Effect<
-      { isValid: boolean; diagnostics: DiagnosticMessage[] }
-    >> = field.alternatives.map((alternative) =>
+    const validateAlternativeEffects: Array<
+      Effect.Effect<{ isValid: boolean; diagnostics: DiagnosticMessage[] }>
+    > = field.alternatives.map((alternative) =>
       preValidateObject(value, alternative, path).pipe(
         Effect.flatMap(() =>
           Diagnostics.diagnostics.pipe(
@@ -65,10 +67,9 @@ const preValidateUnion = (
             Diagnostics.error(
               pathFromDiagnostic(diagnostic) ?? path,
               `No valid alternative found for union '${fieldName}'`,
-              `Failed to validate: ${ 
-                diagnostic.summary 
-                }\n\n${ 
-                diagnostic.detail}`,
+              `Failed to validate: ${diagnostic.summary}\n\n${
+                diagnostic.detail
+              }`,
             ),
           ),
         );

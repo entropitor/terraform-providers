@@ -30,6 +30,7 @@ export const servePlugin = (plugin: HashicorpPlugin) => {
       console.error(
         "This binary is a plugin. These are not meant to be executed directly.\nPlease execute the program that consumes these plugins, which will\nload any plugins automatically",
       );
+      // eslint-disable-next-line no-process-exit
       process.exit(1);
     }
   }
@@ -38,6 +39,7 @@ export const servePlugin = (plugin: HashicorpPlugin) => {
     router
       .service(GRPCController, {
         shutdown() {
+          // eslint-disable-next-line no-process-exit
           process.exit(0);
         },
       })
@@ -117,6 +119,10 @@ export const servePlugin = (plugin: HashicorpPlugin) => {
     console.log(handshake.join("|"));
   });
 
-  process.on("uncaughtException", (error) => { console.error(error); });
-  process.on("unhandledRejection", (error) => { console.error(error); });
+  process.on("uncaughtException", (error) => {
+    console.error(error);
+  });
+  process.on("unhandledRejection", (error) => {
+    console.error(error);
+  });
 };

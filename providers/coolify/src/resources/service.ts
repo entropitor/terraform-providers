@@ -39,7 +39,7 @@ export const coolifyService = coolifyProviderBuilder.resource({
         },
       })),
       Effect.catchTag("RequestError", ({ response, error }) => {
-        if (response.status == 404) {
+        if (response.status === 404) {
           return Effect.succeed({ currentState: null });
         }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { schema, tf, Unknown } from "@entropitor/terraform-provider-sdk";
 import { Effect } from "effect";
 

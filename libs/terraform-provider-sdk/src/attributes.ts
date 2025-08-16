@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import type { MessageInitShape } from "@bufbuild/protobuf";
 import { type Pipeable, pipeArguments } from "effect/Pipeable";
 
@@ -55,6 +56,7 @@ abstract class BaseAttribute implements Pipeable {
     de: (_: D) => E,
   ): E;
   pipe() {
+    // eslint-disable-next-line prefer-rest-params
     return pipeArguments(this, arguments);
   }
 }
@@ -106,7 +108,7 @@ export class UnionAttribute<
         : null;
     });
     const filteredNames = names.filter((name) => name != null);
-    return filteredNames.length == names.length ? filteredNames : null;
+    return filteredNames.length === names.length ? filteredNames : null;
   }
 }
 
@@ -142,6 +144,7 @@ const typeFrom = (
       return {
         nestedType: {
           nesting: Schema_Object_NestingMode.LIST,
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           attributes: attributeListFrom(attr.fields),
         },
       };
@@ -152,6 +155,7 @@ const typeFrom = (
       return {
         nestedType: {
           nesting: Schema_Object_NestingMode.SINGLE,
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           attributes: attributeListFrom(attr.fields),
         },
       };
@@ -177,7 +181,9 @@ export const attributeListFrom = (
       return [
         {
           name,
-          ...(attr.description ? { description: attr.description } : {}),
+          ...(attr.description != null
+            ? { description: attr.description }
+            : {}),
           ...presenceFrom(attr, insideUnion),
           ...typeFrom(attr),
         },
@@ -194,7 +200,9 @@ export const toTerraformSchema = (schema: Schema): SchemaMessage => {
   return {
     block: {
       attributes: attributeListFrom(schema.attributes),
-      ...(schema.description ? { description: schema.description } : {}),
+      ...(schema.description != null
+        ? { description: schema.description }
+        : {}),
     },
   };
 };
@@ -219,6 +227,7 @@ class SchemaInternal<TFields extends Fields> implements Pipeable {
     de: (_: D) => E,
   ): E;
   pipe() {
+    // eslint-disable-next-line prefer-rest-params
     return pipeArguments(this, arguments);
   }
 

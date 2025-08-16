@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { Effect } from "effect";
 
 import {
@@ -78,7 +79,7 @@ const preprocessAttribute = (
   operation: PlanOperation,
 ): PreProcessResult =>
   Effect.gen(function* () {
-    if (attribute.requiresReplacementOnChange && operation == "update") {
+    if (attribute.requiresReplacementOnChange && operation === "update") {
       yield* RequiresReplacementTracker.add(path);
     }
 
@@ -91,7 +92,7 @@ const preprocessAttribute = (
       case "number":
       case "string":
         return proposed;
-      case "list":
+      case "list": {
         const effects = (proposed as any[]).map(
           (proposedItem: any, index: number) =>
             preprocessObject(
@@ -103,6 +104,7 @@ const preprocessAttribute = (
             ),
         );
         return yield* Effect.all(effects);
+      }
       case "object":
         return yield* preprocessObject(
           prior,

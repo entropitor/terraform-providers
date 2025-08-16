@@ -20,7 +20,7 @@ export const coolifyProviderBuilder = providerBuilder({
   configure({ config }) {
     return Effect.gen(function* () {
       const client = createClient<paths>({
-        baseUrl: `${config.base_url  }/api/v1`,
+        baseUrl: `${config.base_url}/api/v1`,
         headers: {
           Authorization: `Bearer ${config.token}`,
         },
@@ -29,7 +29,7 @@ export const coolifyProviderBuilder = providerBuilder({
         return {
           $state: client,
         };
-      } catch (error: any) {
+      } catch (_error: any) {
         return yield* Diagnostics.crit(
           [diagnosticsPath.attribute("token")],
           "Invalid credentials",

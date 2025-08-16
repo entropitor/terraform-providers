@@ -1,14 +1,12 @@
+/* eslint-disable @typescript-eslint/no-invalid-void-type */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import type { HandlerContext } from "@connectrpc/connect";
 import { Effect } from "effect";
 
 import type { ConfigFor, Schema, StateFor } from "./attributes.js";
 import { decode, encodeWithSchema } from "./codec.js";
-import type {
-  DiagnosticError} from "./diagnostics.js";
-import {
-  type Diagnostics,
-  withDiagnostics,
-} from "./diagnostics.js";
+import type { DiagnosticError } from "./diagnostics.js";
+import { type Diagnostics, withDiagnostics } from "./diagnostics.js";
 import type {
   ReadDataSource_Request,
   ValidateDataResourceConfig_Request,
@@ -18,15 +16,15 @@ import type { ProviderForResources } from "./provider.js";
 
 type ReadRequest<TDataSourceSchema extends Schema> = {
   config: ConfigFor<TDataSourceSchema>;
-}
+};
 type ReadResponse<TDataSourceSchema extends Schema> = {
   state: StateFor<TDataSourceSchema>;
-}
+};
 
 type ValidateRequest<TDataSourceSchema extends Schema> = {
   config: ConfigFor<TDataSourceSchema>;
-}
-type ValidateResponse<_TDataSourceSchema extends Schema> = {}
+};
+type ValidateResponse<_TDataSourceSchema extends Schema> = {};
 
 export type IDataSource<TDataSourceSchema extends Schema, TProviderState> = {
   read: (
@@ -47,7 +45,7 @@ export type IDataSource<TDataSourceSchema extends Schema, TProviderState> = {
     DiagnosticError,
     Diagnostics
   >;
-}
+};
 
 export type DataSource = ReturnType<typeof createDataSource>;
 

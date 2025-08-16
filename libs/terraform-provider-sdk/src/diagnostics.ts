@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-invalid-void-type */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import type { MessageInitShape } from "@bufbuild/protobuf";
 import { Effect, pipe } from "effect";
 

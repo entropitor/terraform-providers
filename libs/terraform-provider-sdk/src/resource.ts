@@ -1,15 +1,12 @@
+/* eslint-disable @typescript-eslint/no-invalid-void-type */
 import type { MessageInitShape } from "@bufbuild/protobuf";
 import type { HandlerContext } from "@connectrpc/connect";
 import { Effect } from "effect";
 
 import type { ConfigFor, Schema, StateFor } from "./attributes.js";
 import { decode, encodeWithSchema } from "./codec.js";
-import type {
-  DiagnosticError,
-  Diagnostics} from "./diagnostics.js";
-import {
-  withDiagnostics,
-} from "./diagnostics.js";
+import type { DiagnosticError, Diagnostics } from "./diagnostics.js";
+import { withDiagnostics } from "./diagnostics.js";
 import {
   type ApplyResourceChange_Request,
   Diagnostic_Severity,
@@ -33,43 +30,44 @@ type PlanRequest<TResourceSchema extends Schema> = {
   priorState: null | StateFor<TResourceSchema>;
   proposedNewState: StateFor<TResourceSchema>;
   proposedNewStateIsPriorState: boolean;
-}
+};
 type ReadRequest<TResourceSchema extends Schema> = {
   savedState: StateFor<TResourceSchema>;
-}
+};
 type ImportRequest<_TResourceSchema extends Schema> = {
   resourceId: string;
-}
+};
 type CreateRequest<TResourceSchema extends Schema> = {
   config: ConfigFor<TResourceSchema>;
   priorState: null;
-}
+};
 type UpdateRequest<TResourceSchema extends Schema> = {
   config: ConfigFor<TResourceSchema>;
   priorState: StateFor<TResourceSchema>;
-}
+};
 type DeleteRequest<TResourceSchema extends Schema> = {
   config: null;
   priorState: StateFor<TResourceSchema>;
-}
+};
 
 type PlanResponse<TResourceSchema extends Schema> = {
   plannedState: StateFor<TResourceSchema>;
-}
+};
 
 type ReadResponse<TResourceSchema extends Schema> = {
   currentState: null | StateFor<TResourceSchema>;
-}
+};
 type ImportResponse<TResourceSchema extends Schema> = {
   currentState: StateFor<TResourceSchema>;
-}
+};
 type CreateResponse<TResourceSchema extends Schema> = {
   newState: StateFor<TResourceSchema>;
-}
+};
 type UpdateResponse<TResourceSchema extends Schema> = {
   newState: StateFor<TResourceSchema>;
-}
-type DeleteResponse<_TResourceSchema extends Schema> = {}
+};
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+type DeleteResponse<_TResourceSchema extends Schema> = {};
 
 export type IResource<TResourceSchema extends Schema, TProviderState> = {
   create: (
@@ -127,7 +125,7 @@ export type IResource<TResourceSchema extends Schema, TProviderState> = {
     config: NoInfer<ConfigFor<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<void, never, Diagnostics>;
-}
+};
 
 export type Resource = ReturnType<typeof createResource>;
 
@@ -187,10 +185,10 @@ export const createResource = <TResourceSchema extends Schema, TState>(
 
           const config: ResourceConfig = decode(req.config!.msgpack);
           const same =
-            req.proposedNewState?.msgpack.length ==
+            req.proposedNewState?.msgpack.length ===
               req.priorState?.msgpack.length &&
             req.proposedNewState?.msgpack.every(
-              (byte, index) => byte == req.priorState?.msgpack[index],
+              (byte, index) => byte === req.priorState?.msgpack[index],
             );
 
           return yield* resource
@@ -228,14 +226,14 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       ctx: HandlerContext,
     ) {
       console.error("[ERROR] applyResourceChange", provider.providerInstanceId);
-      const config: ResourceConfig = decode(req.config!.msgpack);
-      const priorState: ResourceState = decode(req.priorState!.msgpack);
+      const config: null | ResourceConfig = decode(req.config!.msgpack);
+      const priorState: null | ResourceState = decode(req.priorState!.msgpack);
 
       return await Effect.runPromise(
         Effect.gen(function* () {
           if (priorState == null) {
             const response = yield* resource.create(
-              { config, priorState: null },
+              { config: config!, priorState: null },
               provider.state,
             );
             return {
@@ -270,7 +268,9 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     },
     async readResource(req: ReadResource_Request, ctx: HandlerContext) {
       console.error("[ERROR] readResource", provider.providerInstanceId);
-      const savedState: ResourceState = decode(req.currentState!.msgpack);
+      const savedState: null | ResourceState = decode(
+        req.currentState!.msgpack,
+      );
       if (savedState == null) {
         return {
           newState: { msgpack: encodeWithSchema(null, resource.schema) },

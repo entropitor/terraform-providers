@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import {
   ExtensionCodec,
   decode as msgpackDecode,
@@ -15,7 +16,7 @@ import { unreachable } from "./utils/unreachable.js";
 export class Unknown {
   _unknown = "UnknownValue";
 
-  // @ts-expect-error unused
+  // @ts-expect-error unused argument
   constructor(private readonly buffer?: Buffer | Uint8Array) {}
 }
 const extensionCodec = new ExtensionCodec();

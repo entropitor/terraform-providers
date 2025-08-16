@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-invalid-void-type */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { Effect } from "effect";
 
 import type { ConfigFor, Schema } from "./attributes.js";
@@ -8,27 +10,23 @@ import {
   type DataSource,
   type IDataSource,
 } from "./datasource.js";
-import type {
-  DiagnosticError} from "./diagnostics.js";
-import {
-  type Diagnostics,
-  withDiagnostics,
-} from "./diagnostics.js";
+import type { DiagnosticError } from "./diagnostics.js";
+import { type Diagnostics, withDiagnostics } from "./diagnostics.js";
 import { preValidateSchema } from "./pre-validate.js";
 import { createResource, type IResource, type Resource } from "./resource.js";
 import { serveProvider } from "./serve.js";
 
 type ValidateRequest<TProviderSchema extends Schema> = {
   config: ConfigFor<TProviderSchema>;
-}
-type ValidateResponse<_TProviderSchema extends Schema> = {}
+};
+type ValidateResponse<_TProviderSchema extends Schema> = {};
 
 type ConfigureRequest<TProviderSchema extends Schema> = {
   config: ConfigFor<TProviderSchema>;
-}
+};
 type ConfigureResponse<TInternalState> = {
   $state: TInternalState;
-}
+};
 
 export type IProvider<
   TProviderSchema extends Schema,
@@ -44,19 +42,19 @@ export type IProvider<
   >;
   name: TName;
   schema: TProviderSchema;
-  validate: (
+  validate?: (
     req: NoInfer<ValidateRequest<TProviderSchema>>,
   ) => Effect.Effect<
     NoInfer<ValidateResponse<TProviderSchema>> | void,
     DiagnosticError,
     Diagnostics
   >;
-}
+};
 
 export type ProviderForResources<TState> = {
   providerInstanceId: number;
   state: TState;
-}
+};
 
 class ProviderBuilder<
   TProviderSchema extends Schema,
@@ -161,6 +159,7 @@ class ProviderBuilder<
           provider.configure({ config }).pipe(
             withDiagnostics(),
             Effect.tapDefect((defect) =>
+              // eslint-disable-next-line require-yield
               Effect.gen(function* () {
                 console.error("[ERROR] configureProvider defect", defect);
               }),
