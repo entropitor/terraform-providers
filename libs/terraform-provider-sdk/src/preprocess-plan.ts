@@ -1,19 +1,20 @@
 import { Effect } from "effect";
-import { unreachable } from "./utils/unreachable.js";
+
 import {
-  UnionAttribute,
   type Attribute,
   type Fields,
   type Schema,
   type StateFor,
+  UnionAttribute,
 } from "./attributes.js";
 import { Unknown } from "./codec.js";
+import type { DiagnosticError, Diagnostics } from "./diagnostics.js";
 import {
   attributePath,
-  RequiresReplacementTracker,
   type AttributePath,
+  RequiresReplacementTracker,
 } from "./require-replacement.js";
-import type { DiagnosticError, Diagnostics } from "./diagnostics.js";
+import { unreachable } from "./utils/unreachable.js";
 
 // Delete does not call plan
 type PlanOperation = "create" | "update";
@@ -86,18 +87,10 @@ const preprocessAttribute = (
     }
 
     switch (attribute.type) {
-      case "string":
-      case "number":
       case "boolean":
+      case "number":
+      case "string":
         return proposed;
-      case "object":
-        return yield* preprocessObject(
-          prior,
-          proposed,
-          attribute.fields,
-          path,
-          operation,
-        );
       case "list":
         const effects = (proposed as any[]).map(
           (proposedItem: any, index: number) =>
@@ -110,6 +103,14 @@ const preprocessAttribute = (
             ),
         );
         return yield* Effect.all(effects);
+      case "object":
+        return yield* preprocessObject(
+          prior,
+          proposed,
+          attribute.fields,
+          path,
+          operation,
+        );
       default:
         return unreachable(attribute);
     }
@@ -117,8 +118,8 @@ const preprocessAttribute = (
 
 export const preprocessPlan = <TResourceSchema extends Schema>(
   schema: TResourceSchema,
-  priorState: StateFor<TResourceSchema> | null,
-  proposedNewState: StateFor<TResourceSchema> | null,
+  priorState: null | StateFor<TResourceSchema>,
+  proposedNewState: null | StateFor<TResourceSchema>,
 ): PreProcessResult<StateFor<TResourceSchema>> => {
   const operation = priorState == null ? "create" : "update";
   return preprocessObject(

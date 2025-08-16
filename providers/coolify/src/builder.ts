@@ -1,4 +1,3 @@
-import { Effect } from "effect";
 import {
   Diagnostics,
   diagnosticsPath,
@@ -6,7 +5,9 @@ import {
   schema,
   tf,
 } from "@entropitor/terraform-provider-sdk";
+import { Effect } from "effect";
 import createClient from "openapi-fetch";
+
 import type { paths } from "./gen/coolify-api-schema.js";
 
 export const coolifyProviderBuilder = providerBuilder({
@@ -19,7 +20,7 @@ export const coolifyProviderBuilder = providerBuilder({
   configure({ config }) {
     return Effect.gen(function* () {
       const client = createClient<paths>({
-        baseUrl: config.base_url + "/api/v1",
+        baseUrl: `${config.base_url  }/api/v1`,
         headers: {
           Authorization: `Bearer ${config.token}`,
         },

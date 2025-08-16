@@ -1,7 +1,7 @@
 export {
+  requiresReplacementOnChange,
   schema,
   tf,
-  requiresReplacementOnChange,
   withDescription,
 } from "./attributes.js";
 export { Unknown } from "./codec.js";

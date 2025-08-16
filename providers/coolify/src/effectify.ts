@@ -18,15 +18,14 @@ export class RequestError<
 }
 
 export const effectify = <
-  T extends Record<string | number, any>,
+  T extends Record<number | string, any>,
   Options,
   Media extends `${string}/${string}`,
 >(
   lazy: LazyArg<Promise<FetchResponse<T, Options, Media>>>,
 ): Effect.Effect<
   Exclude<FetchResponse<T, Options, Media>, { data?: never }>["data"],
-  RequestError<Exclude<FetchResponse<T, Options, Media>, { error?: never }>>,
-  never
+  RequestError<Exclude<FetchResponse<T, Options, Media>, { error?: never }>>
 > => {
   // @ts-expect-error typescript isn't strong enough to see this is correct
   return Effect.promise(() => lazy()).pipe(

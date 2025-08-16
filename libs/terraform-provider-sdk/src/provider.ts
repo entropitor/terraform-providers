@@ -1,40 +1,40 @@
+import { Effect } from "effect";
+
 import type { ConfigFor, Schema } from "./attributes.js";
 import { toTerraformSchema } from "./attributes.js";
-import { Effect } from "effect";
 import { decode, Unknown } from "./codec.js";
 import {
   createDataSource,
   type DataSource,
   type IDataSource,
 } from "./datasource.js";
-import { createResource, type IResource, type Resource } from "./resource.js";
-import { serveProvider } from "./serve.js";
+import type {
+  DiagnosticError} from "./diagnostics.js";
 import {
-  DiagnosticError,
-  withDiagnostics,
   type Diagnostics,
+  withDiagnostics,
 } from "./diagnostics.js";
 import { preValidateSchema } from "./pre-validate.js";
+import { createResource, type IResource, type Resource } from "./resource.js";
+import { serveProvider } from "./serve.js";
 
-interface ValidateRequest<TProviderSchema extends Schema> {
+type ValidateRequest<TProviderSchema extends Schema> = {
   config: ConfigFor<TProviderSchema>;
 }
-interface ValidateResponse<_TProviderSchema extends Schema> {}
+type ValidateResponse<_TProviderSchema extends Schema> = {}
 
-interface ConfigureRequest<TProviderSchema extends Schema> {
+type ConfigureRequest<TProviderSchema extends Schema> = {
   config: ConfigFor<TProviderSchema>;
 }
-interface ConfigureResponse<TInternalState> {
+type ConfigureResponse<TInternalState> = {
   $state: TInternalState;
 }
 
-export interface IProvider<
+export type IProvider<
   TProviderSchema extends Schema,
   TInternalState,
   TName extends string,
-> {
-  name: TName;
-  schema: TProviderSchema;
+> = {
   configure: (
     req: NoInfer<ConfigureRequest<TProviderSchema>>,
   ) => Effect.Effect<
@@ -42,18 +42,20 @@ export interface IProvider<
     DiagnosticError,
     Diagnostics
   >;
+  name: TName;
+  schema: TProviderSchema;
   validate: (
     req: NoInfer<ValidateRequest<TProviderSchema>>,
   ) => Effect.Effect<
-    void | NoInfer<ValidateResponse<TProviderSchema>>,
+    NoInfer<ValidateResponse<TProviderSchema>> | void,
     DiagnosticError,
     Diagnostics
   >;
 }
 
-export interface ProviderForResources<TState> {
-  state: TState;
+export type ProviderForResources<TState> = {
   providerInstanceId: number;
+  state: TState;
 }
 
 class ProviderBuilder<
@@ -107,7 +109,7 @@ class ProviderBuilder<
 
     const provider = this.provider;
 
-    return serveProvider({
+    serveProvider({
       getProviderSchema() {
         console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {

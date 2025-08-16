@@ -1,16 +1,17 @@
+import assert from "node:assert";
+import http2 from "node:http2";
+
 import type { ConnectRouter } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
-import http2 from "node:http2";
 import forge from "node-forge";
 
-import {
-  HealthCheckResponse_ServingStatus,
-  Health,
-} from "./gen/grpc/health/v1/health_pb.js";
-import { GRPCStdio } from "./gen/plugin/grpc_stdio_pb.js";
 import { generateIdentity } from "./certificate.js";
+import {
+  Health,
+  HealthCheckResponse_ServingStatus,
+} from "./gen/grpc/health/v1/health_pb.js";
 import { GRPCController } from "./gen/plugin/grpc_controller_pb.js";
-import assert from "node:assert";
+import { GRPCStdio } from "./gen/plugin/grpc_stdio_pb.js";
 
 export type HashicorpPlugin = {
   magicCookie: null | {
@@ -61,9 +62,9 @@ export const servePlugin = (plugin: HashicorpPlugin) => {
   });
 
   let server: http2.Http2Server;
-  let serverCertificateString: string | null;
+  let serverCertificateString: null | string;
 
-  if (plugin.mtls === false) {
+  if (!plugin.mtls) {
     server = http2.createServer(requestHandler);
   } else {
     const { cert: serverCertificate, keys } = generateIdentity();
@@ -100,7 +101,7 @@ export const servePlugin = (plugin: HashicorpPlugin) => {
 
   server.listen(0, () => {
     const info = server.address();
-    assert(info != null && typeof info == "object");
+    assert(info != null && typeof info === "object");
 
     const handshake = [
       1,
@@ -116,6 +117,6 @@ export const servePlugin = (plugin: HashicorpPlugin) => {
     console.log(handshake.join("|"));
   });
 
-  process.on("uncaughtException", (error) => console.error(error));
-  process.on("unhandledRejection", (error) => console.error(error));
+  process.on("uncaughtException", (error) => { console.error(error); });
+  process.on("unhandledRejection", (error) => { console.error(error); });
 };

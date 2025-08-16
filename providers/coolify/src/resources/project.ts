@@ -1,5 +1,6 @@
+import { Diagnostics, schema, tf } from "@entropitor/terraform-provider-sdk";
 import { Effect } from "effect";
-import { schema, tf, Diagnostics } from "@entropitor/terraform-provider-sdk";
+
 import { coolifyProviderBuilder } from "../builder.js";
 import { effectify } from "../effectify.js";
 

@@ -1,10 +1,11 @@
+import type { MessageInitShape } from "@bufbuild/protobuf";
 import { Effect, pipe } from "effect";
+
 import {
   type AttributePath_Step,
   Diagnostic_Severity,
   type DiagnosticSchema,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
-import type { MessageInitShape } from "@bufbuild/protobuf";
 
 export type DiagnosticPath = Array<AttributePath_Step["selector"]>;
 export const diagnosticsPath = {
@@ -12,7 +13,7 @@ export const diagnosticsPath = {
     ({ case: "attributeName", value: name }) as const,
   elementKey: (name: string) =>
     ({ case: "elementKeyString", value: name }) as const,
-  elementIndex: (index: number | bigint) =>
+  elementIndex: (index: bigint | number) =>
     ({
       case: "elementKeyInt",
       value: BigInt(index),
@@ -43,7 +44,7 @@ export class Diagnostics extends Effect.Tag("Diagnostics")<
       steps: DiagnosticPath,
       summary: string,
       detail?: string,
-    ): Effect.Effect<never, DiagnosticError, never>;
+    ): Effect.Effect<never, DiagnosticError>;
   }
 >() {}
 
@@ -89,8 +90,8 @@ export const provideDiagnostics = () =>
 
 export const withDiagnostics =
   () =>
-  <A extends {} | void, E extends { _tag: string }, R>(
-    effect: Effect.Effect<A, E | DiagnosticError, R>,
+  <A extends void | {}, E extends { _tag: string }, R>(
+    effect: Effect.Effect<A, DiagnosticError | E, R>,
   ): Effect.Effect<
     (A | {}) & { diagnostics: DiagnosticMessage[] },
     E,

@@ -1,38 +1,39 @@
-import { unreachable } from "./utils/unreachable.js";
+import type { MessageInitShape } from "@bufbuild/protobuf";
+import { type Pipeable, pipeArguments } from "effect/Pipeable";
+
 import {
-  type SchemaSchema,
   type Schema_Attribute,
   type Schema_AttributeSchema,
   Schema_Object_NestingMode,
+  type SchemaSchema,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
-import { pipeArguments, type Pipeable } from "effect/Pipeable";
-import type { MessageInitShape } from "@bufbuild/protobuf";
 import type { ForceTypescriptComputation } from "./utils/ForceTypescriptComputation.js";
+import { unreachable } from "./utils/unreachable.js";
 
 type SchemaMessage = MessageInitShape<typeof SchemaSchema>;
 type SchemaAttributeMessage = MessageInitShape<typeof Schema_AttributeSchema>;
 
 type AttributeType =
-  | { type: "string" }
-  | { type: "number" }
   | { type: "boolean" }
   | { type: "list"; fields: Record<string, Attribute> }
-  | { type: "object"; fields: Record<string, Attribute> };
+  | { type: "number" }
+  | { type: "object"; fields: Record<string, Attribute> }
+  | { type: "string" };
 
 type Presence =
-  | "required"
   | "computed"
   | "optional"
   | "optional_or_computed"
+  | "required"
   | "required_to_be_computed";
 
 export type Attribute<
   TAttributeType extends AttributeType = AttributeType,
   TPresence extends Presence = Presence,
-> = TAttributeType & { presence: TPresence } & {
+> = TAttributeType & {
   description?: string;
   requiresReplacementOnChange?: boolean;
-};
+} & { presence: TPresence };
 
 abstract class BaseAttribute implements Pipeable {
   public readonly description?: string;
@@ -59,7 +60,7 @@ abstract class BaseAttribute implements Pipeable {
 }
 
 class PrimitiveAttribute<
-  TType extends "string" | "number" | "boolean",
+  TType extends "boolean" | "number" | "string",
   TPresence extends Presence,
 > extends BaseAttribute {
   constructor(
@@ -88,7 +89,7 @@ class CompositeAttribute<
 }
 
 export class UnionAttribute<
-  TAlternatives extends Array<AttributeFields> = AttributeFields[],
+  TAlternatives extends AttributeFields[] = AttributeFields[],
 > extends BaseAttribute {
   constructor(
     public readonly alternatives: TAlternatives,
@@ -97,7 +98,7 @@ export class UnionAttribute<
     super();
   }
 
-  fieldNamesIfAllAlternativesAreSingleRequiredFields(): string[] | null {
+  fieldNamesIfAllAlternativesAreSingleRequiredFields(): null | string[] {
     const names = this.alternatives.map((alternative) => {
       const keys = Object.keys(alternative);
       return keys.length === 1 && alternative[keys[0]!]!.presence === "required"
@@ -112,13 +113,8 @@ export class UnionAttribute<
 const presenceFrom = (
   attr: Attribute,
   insideUnion: boolean,
-): Pick<Schema_Attribute, "computed" | "required" | "optional"> => {
+): Pick<Schema_Attribute, "computed" | "optional" | "required"> => {
   switch (attr.presence) {
-    case "required":
-      if (insideUnion) {
-        return { required: false, optional: true, computed: false };
-      }
-      return { required: true, optional: false, computed: false };
     case "computed":
     case "required_to_be_computed":
       return { required: false, optional: false, computed: true };
@@ -126,6 +122,11 @@ const presenceFrom = (
       return { required: false, optional: true, computed: false };
     case "optional_or_computed":
       return { required: false, optional: true, computed: true };
+    case "required":
+      if (insideUnion) {
+        return { required: false, optional: true, computed: false };
+      }
+      return { required: true, optional: false, computed: false };
     default:
       return unreachable(attr.presence);
   }
@@ -133,12 +134,17 @@ const presenceFrom = (
 
 const typeFrom = (
   attr: Attribute,
-): Pick<SchemaAttributeMessage, "type" | "nestedType"> => {
+): Pick<SchemaAttributeMessage, "nestedType" | "type"> => {
   switch (attr.type) {
     case "boolean":
       return { type: Buffer.from('"bool"') };
-    case "string":
-      return { type: Buffer.from('"string"') };
+    case "list":
+      return {
+        nestedType: {
+          nesting: Schema_Object_NestingMode.LIST,
+          attributes: attributeListFrom(attr.fields),
+        },
+      };
     case "number":
       return { type: Buffer.from('"number"') };
 
@@ -149,13 +155,8 @@ const typeFrom = (
           attributes: attributeListFrom(attr.fields),
         },
       };
-    case "list":
-      return {
-        nestedType: {
-          nesting: Schema_Object_NestingMode.LIST,
-          attributes: attributeListFrom(attr.fields),
-        },
-      };
+    case "string":
+      return { type: Buffer.from('"string"') };
 
     default:
       return unreachable(attr);
@@ -319,7 +320,7 @@ type UnionAttributeFields<TSchema extends Schema> = {
     ? TField
     : never;
 }[keyof TSchema["attributes"]];
-type Element<T> = T extends Array<any> ? T[number] : never;
+type Element<T> = T extends any[] ? T[number] : never;
 
 export type ConfigForNormalAttributes<TSchema extends Schema> = {
   [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends
@@ -358,20 +359,20 @@ export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<
   ConfigForNormalAttributes<TSchema> & ConfigForUnionAttributes<TSchema>
 >;
 
-type OptionalPresenceInState = "optional" | "optional_or_computed" | "computed";
+type OptionalPresenceInState = "computed" | "optional" | "optional_or_computed";
 type StateForOptionalAttributes<TSchema extends Schema> = {
   [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends OptionalPresenceInState
     ? TField
     : never]+?: TSchema["attributes"][TField] extends infer TAttribute extends
     Attribute
-    ? undefined | ConfigForAttribute<TAttribute>
+    ? ConfigForAttribute<TAttribute> | undefined
     : never;
 };
 
 type StateForRequiredAttribute<TSchema extends Schema> = {
   [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends
-    | OptionalPresenceInState
     | "union"
+    | OptionalPresenceInState
     ? never
     : TField]: TSchema["attributes"][TField] extends infer TAttribute extends
     Attribute

@@ -1,9 +1,10 @@
+import type { MessageInitShape } from "@bufbuild/protobuf";
 import { Effect, pipe } from "effect";
+
 import {
   type AttributePath_Step,
   type AttributePathSchema,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
-import type { MessageInitShape } from "@bufbuild/protobuf";
 
 export type AttributePath = Array<AttributePath_Step["selector"]>;
 export const attributePath = {
@@ -11,7 +12,7 @@ export const attributePath = {
     ({ case: "attributeName", value: name }) as const,
   elementKey: (name: string) =>
     ({ case: "elementKeyString", value: name }) as const,
-  elementIndex: (index: number | bigint) =>
+  elementIndex: (index: bigint | number) =>
     ({
       case: "elementKeyInt",
       value: BigInt(index),
@@ -44,7 +45,7 @@ export const provideRequiresReplacement = () =>
 
 export const withTrackedReplacements =
   () =>
-  <A extends {} | void, E extends { _tag: string }, R>(
+  <A extends void | {}, E extends { _tag: string }, R>(
     effect: Effect.Effect<A, E, R>,
   ): Effect.Effect<
     readonly [A, RequiresReplacementMessage[]],

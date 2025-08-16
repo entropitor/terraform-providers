@@ -1,47 +1,49 @@
-import type { ConfigFor, Schema, StateFor } from "./attributes.js";
-import { Effect } from "effect";
-import { decode, encodeWithSchema } from "./codec.js";
 import type { HandlerContext } from "@connectrpc/connect";
+import { Effect } from "effect";
+
+import type { ConfigFor, Schema, StateFor } from "./attributes.js";
+import { decode, encodeWithSchema } from "./codec.js";
+import type {
+  DiagnosticError} from "./diagnostics.js";
+import {
+  type Diagnostics,
+  withDiagnostics,
+} from "./diagnostics.js";
 import type {
   ReadDataSource_Request,
   ValidateDataResourceConfig_Request,
 } from "./gen/tfplugin6/tfplugin6.7_pb.js";
-import type { ProviderForResources } from "./provider.js";
-import {
-  DiagnosticError,
-  withDiagnostics,
-  type Diagnostics,
-} from "./diagnostics.js";
 import { preValidateSchema } from "./pre-validate.js";
+import type { ProviderForResources } from "./provider.js";
 
-interface ReadRequest<TDataSourceSchema extends Schema> {
+type ReadRequest<TDataSourceSchema extends Schema> = {
   config: ConfigFor<TDataSourceSchema>;
 }
-interface ReadResponse<TDataSourceSchema extends Schema> {
+type ReadResponse<TDataSourceSchema extends Schema> = {
   state: StateFor<TDataSourceSchema>;
 }
 
-interface ValidateRequest<TDataSourceSchema extends Schema> {
+type ValidateRequest<TDataSourceSchema extends Schema> = {
   config: ConfigFor<TDataSourceSchema>;
 }
-interface ValidateResponse<_TDataSourceSchema extends Schema> {}
+type ValidateResponse<_TDataSourceSchema extends Schema> = {}
 
-export interface IDataSource<TDataSourceSchema extends Schema, TProviderState> {
-  schema: TDataSourceSchema;
-
-  validate?: (
-    req: NoInfer<ValidateRequest<TDataSourceSchema>>,
-    providerState: TProviderState,
-  ) => Effect.Effect<
-    void | NoInfer<ValidateResponse<TDataSourceSchema>>,
-    DiagnosticError,
-    Diagnostics
-  >;
+export type IDataSource<TDataSourceSchema extends Schema, TProviderState> = {
   read: (
     req: NoInfer<ReadRequest<TDataSourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<ReadResponse<TDataSourceSchema>>,
+    DiagnosticError,
+    Diagnostics
+  >;
+
+  schema: TDataSourceSchema;
+  validate?: (
+    req: NoInfer<ValidateRequest<TDataSourceSchema>>,
+    providerState: TProviderState,
+  ) => Effect.Effect<
+    NoInfer<ValidateResponse<TDataSourceSchema>> | void,
     DiagnosticError,
     Diagnostics
   >;

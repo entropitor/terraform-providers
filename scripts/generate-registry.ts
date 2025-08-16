@@ -1,5 +1,5 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
-import { copy, expandGlob, ensureDir, exists } from "jsr:@std/fs";
+import { copy, ensureDir, exists, expandGlob } from "jsr:@std/fs";
 import { join } from "jsr:@std/path";
 
 const {
@@ -70,7 +70,7 @@ const parseShasums = (shasums: string): Record<string, string> => {
 
 const VERSIONS: Record<string, Version> = {};
 const SHASUMS: Record<string, Record<string, string>> = {};
-const DOWNLOADS: Array<Download> = [];
+const DOWNLOADS: Download[] = [];
 for await (const entry of expandGlob(
   `${releasesDir}/terraform-provider-${name}_*.zip`,
 )) {

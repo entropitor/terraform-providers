@@ -1,94 +1,90 @@
-import type { ConfigFor, StateFor, Schema } from "./attributes.js";
-import { Effect } from "effect";
-import { decode, encodeWithSchema } from "./codec.js";
+import type { MessageInitShape } from "@bufbuild/protobuf";
 import type { HandlerContext } from "@connectrpc/connect";
-import {
-  Diagnostic_Severity,
-  type ApplyResourceChange_Request,
-  type ImportResourceState_Request,
-  type PlanResourceChange_Request,
-  type ReadResource_Request,
-  type ImportResourceState_ResponseSchema,
-  type PlanResourceChange_ResponseSchema,
-  type ValidateResourceConfig_Request,
-} from "./gen/tfplugin6/tfplugin6.7_pb.js";
-import type { ProviderForResources } from "./provider.js";
-import {
+import { Effect } from "effect";
+
+import type { ConfigFor, Schema, StateFor } from "./attributes.js";
+import { decode, encodeWithSchema } from "./codec.js";
+import type {
   DiagnosticError,
-  Diagnostics,
+  Diagnostics} from "./diagnostics.js";
+import {
   withDiagnostics,
 } from "./diagnostics.js";
-import { preprocessPlan } from "./preprocess-plan.js";
-import type { MessageInitShape } from "@bufbuild/protobuf";
-import { preValidateSchema } from "./pre-validate.js";
 import {
-  withTrackedReplacements,
+  type ApplyResourceChange_Request,
+  Diagnostic_Severity,
+  type ImportResourceState_Request,
+  type ImportResourceState_ResponseSchema,
+  type PlanResourceChange_Request,
+  type PlanResourceChange_ResponseSchema,
+  type ReadResource_Request,
+  type ValidateResourceConfig_Request,
+} from "./gen/tfplugin6/tfplugin6.7_pb.js";
+import { preValidateSchema } from "./pre-validate.js";
+import { preprocessPlan } from "./preprocess-plan.js";
+import type { ProviderForResources } from "./provider.js";
+import {
   type RequiresReplacementTracker,
+  withTrackedReplacements,
 } from "./require-replacement.js";
 
-interface PlanRequest<TResourceSchema extends Schema> {
+type PlanRequest<TResourceSchema extends Schema> = {
   config: ConfigFor<TResourceSchema>;
+  priorState: null | StateFor<TResourceSchema>;
   proposedNewState: StateFor<TResourceSchema>;
-  priorState: StateFor<TResourceSchema> | null;
   proposedNewStateIsPriorState: boolean;
 }
-interface ReadRequest<TResourceSchema extends Schema> {
+type ReadRequest<TResourceSchema extends Schema> = {
   savedState: StateFor<TResourceSchema>;
 }
-interface ImportRequest<_TResourceSchema extends Schema> {
+type ImportRequest<_TResourceSchema extends Schema> = {
   resourceId: string;
 }
-interface CreateRequest<TResourceSchema extends Schema> {
+type CreateRequest<TResourceSchema extends Schema> = {
   config: ConfigFor<TResourceSchema>;
   priorState: null;
 }
-interface UpdateRequest<TResourceSchema extends Schema> {
+type UpdateRequest<TResourceSchema extends Schema> = {
   config: ConfigFor<TResourceSchema>;
   priorState: StateFor<TResourceSchema>;
 }
-interface DeleteRequest<TResourceSchema extends Schema> {
+type DeleteRequest<TResourceSchema extends Schema> = {
   config: null;
   priorState: StateFor<TResourceSchema>;
 }
 
-interface PlanResponse<TResourceSchema extends Schema> {
+type PlanResponse<TResourceSchema extends Schema> = {
   plannedState: StateFor<TResourceSchema>;
 }
 
-interface ReadResponse<TResourceSchema extends Schema> {
-  currentState: StateFor<TResourceSchema> | null;
+type ReadResponse<TResourceSchema extends Schema> = {
+  currentState: null | StateFor<TResourceSchema>;
 }
-interface ImportResponse<TResourceSchema extends Schema> {
+type ImportResponse<TResourceSchema extends Schema> = {
   currentState: StateFor<TResourceSchema>;
 }
-interface CreateResponse<TResourceSchema extends Schema> {
+type CreateResponse<TResourceSchema extends Schema> = {
   newState: StateFor<TResourceSchema>;
 }
-interface UpdateResponse<TResourceSchema extends Schema> {
+type UpdateResponse<TResourceSchema extends Schema> = {
   newState: StateFor<TResourceSchema>;
 }
-interface DeleteResponse<_TResourceSchema extends Schema> {}
+type DeleteResponse<_TResourceSchema extends Schema> = {}
 
-export interface IResource<TResourceSchema extends Schema, TProviderState> {
-  schema: TResourceSchema;
-  validate?: (
-    config: NoInfer<ConfigFor<TResourceSchema>>,
-    providerState: TProviderState,
-  ) => Effect.Effect<void, never, Diagnostics>;
-  plan?: (
-    req: NoInfer<PlanRequest<TResourceSchema>>,
+export type IResource<TResourceSchema extends Schema, TProviderState> = {
+  create: (
+    req: NoInfer<CreateRequest<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<
-    NoInfer<PlanResponse<TResourceSchema>>,
+    NoInfer<CreateResponse<TResourceSchema>>,
     DiagnosticError,
-    Diagnostics | RequiresReplacementTracker
+    Diagnostics
   >;
-
-  read: (
-    req: NoInfer<ReadRequest<TResourceSchema>>,
+  delete: (
+    req: NoInfer<DeleteRequest<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<
-    NoInfer<ReadResponse<TResourceSchema>>,
+    NoInfer<DeleteResponse<TResourceSchema>> | void,
     DiagnosticError,
     Diagnostics
   >;
@@ -101,14 +97,24 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     Diagnostics
   >;
 
-  create: (
-    req: NoInfer<CreateRequest<TResourceSchema>>,
+  plan?: (
+    req: NoInfer<PlanRequest<TResourceSchema>>,
     providerState: TProviderState,
   ) => Effect.Effect<
-    NoInfer<CreateResponse<TResourceSchema>>,
+    NoInfer<PlanResponse<TResourceSchema>>,
+    DiagnosticError,
+    Diagnostics | RequiresReplacementTracker
+  >;
+  read: (
+    req: NoInfer<ReadRequest<TResourceSchema>>,
+    providerState: TProviderState,
+  ) => Effect.Effect<
+    NoInfer<ReadResponse<TResourceSchema>>,
     DiagnosticError,
     Diagnostics
   >;
+
+  schema: TResourceSchema;
   update: (
     req: NoInfer<UpdateRequest<TResourceSchema>>,
     providerState: TProviderState,
@@ -117,14 +123,10 @@ export interface IResource<TResourceSchema extends Schema, TProviderState> {
     DiagnosticError,
     Diagnostics
   >;
-  delete: (
-    req: NoInfer<DeleteRequest<TResourceSchema>>,
+  validate?: (
+    config: NoInfer<ConfigFor<TResourceSchema>>,
     providerState: TProviderState,
-  ) => Effect.Effect<
-    void | NoInfer<DeleteResponse<TResourceSchema>>,
-    DiagnosticError,
-    Diagnostics
-  >;
+  ) => Effect.Effect<void, never, Diagnostics>;
 }
 
 export type Resource = ReturnType<typeof createResource>;

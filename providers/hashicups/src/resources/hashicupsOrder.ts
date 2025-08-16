@@ -1,5 +1,6 @@
-import { Effect } from "effect";
 import { schema, tf, Unknown } from "@entropitor/terraform-provider-sdk";
+import { Effect } from "effect";
+
 import { hashicupsProviderBuilder } from "../builder.js";
 
 export const hashicupsOrder = hashicupsProviderBuilder.resource({

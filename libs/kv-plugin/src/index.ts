@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
-import { KV } from "./gen/proto/kv_pb.js";
 import { servePlugin } from "@entropitor/hashicorp-plugin";
+
+import { KV } from "./gen/proto/kv_pb.js";
 
 servePlugin({
   magicCookie: {

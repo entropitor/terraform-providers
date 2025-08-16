@@ -1,13 +1,14 @@
 import {
   ExtensionCodec,
-  encode as msgpackEncode,
   decode as msgpackDecode,
+  encode as msgpackEncode,
 } from "@msgpack/msgpack";
+
 import {
-  UnionAttribute,
   type Attribute,
   type Fields,
   type Schema,
+  UnionAttribute,
 } from "./attributes.js";
 import { unreachable } from "./utils/unreachable.js";
 
@@ -32,7 +33,7 @@ extensionCodec.register({
 });
 const encode = (value: unknown) => msgpackEncode(value, { extensionCodec });
 export const decode = (
-  value: ArrayBufferLike | ArrayLike<number> | ArrayBufferView<ArrayBufferLike>,
+  value: ArrayBufferLike | ArrayBufferView | ArrayLike<number>,
 ) => msgpackDecode(value, { extensionCodec }) as any;
 
 const mapObject = (value: any, fields: Fields) => {
@@ -53,17 +54,17 @@ const mapObject = (value: any, fields: Fields) => {
 };
 const mapAttribute = (value: any, attribute: Attribute): unknown => {
   switch (attribute.type) {
-    case "string":
-    case "number":
     case "boolean":
+    case "number":
+    case "string":
       return value;
-    case "object":
-      return mapObject(value, attribute.fields);
     case "list":
       if (value == null || value instanceof Unknown) {
         return value;
       }
       return value.map((item: any) => mapObject(item, attribute.fields));
+    case "object":
+      return mapObject(value, attribute.fields);
     default:
       return unreachable(attribute);
   }

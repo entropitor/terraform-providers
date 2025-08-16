@@ -1,21 +1,22 @@
+import { Effect } from "effect";
+
 import {
-  UnionAttribute,
   type Attribute,
   type Fields,
   type Schema,
+  UnionAttribute,
 } from "./attributes.js";
-import { unreachable } from "./utils/unreachable.js";
 import { Unknown } from "./codec.js";
-import { Effect } from "effect";
 import {
+  type DiagnosticError,
+  type DiagnosticMessage,
+  type DiagnosticPath,
   Diagnostics,
   diagnosticsPath,
   pathFromDiagnostic,
   provideDiagnostics,
-  type DiagnosticError,
-  type DiagnosticMessage,
-  type DiagnosticPath,
 } from "./diagnostics.js";
+import { unreachable } from "./utils/unreachable.js";
 
 const preValidateUnion = (
   value: unknown,
@@ -24,11 +25,9 @@ const preValidateUnion = (
   path: DiagnosticPath,
 ): Effect.Effect<undefined, DiagnosticError, Diagnostics> => {
   return Effect.gen(function* () {
-    const validateAlternativeEffects: Effect.Effect<
-      { isValid: boolean; diagnostics: DiagnosticMessage[] },
-      never,
-      never
-    >[] = field.alternatives.map((alternative) =>
+    const validateAlternativeEffects: Array<Effect.Effect<
+      { isValid: boolean; diagnostics: DiagnosticMessage[] }
+    >> = field.alternatives.map((alternative) =>
       preValidateObject(value, alternative, path).pipe(
         Effect.flatMap(() =>
           Diagnostics.diagnostics.pipe(
@@ -66,10 +65,10 @@ const preValidateUnion = (
             Diagnostics.error(
               pathFromDiagnostic(diagnostic) ?? path,
               `No valid alternative found for union '${fieldName}'`,
-              "Failed to validate: " +
-                diagnostic.summary +
-                "\n\n" +
-                diagnostic.detail,
+              `Failed to validate: ${ 
+                diagnostic.summary 
+                }\n\n${ 
+                diagnostic.detail}`,
             ),
           ),
         );
@@ -103,7 +102,7 @@ const preValidateObject = (
           );
         }),
       ),
-    )) satisfies (void | undefined)[];
+    )) satisfies Array<undefined | void>;
     return undefined;
   });
 
@@ -112,7 +111,7 @@ const preValidateAttribute = (
   attribute: Attribute,
   attributeName: string,
   path: DiagnosticPath,
-): Effect.Effect<void | undefined, DiagnosticError, Diagnostics> =>
+): Effect.Effect<undefined | void, DiagnosticError, Diagnostics> =>
   Effect.gen(function* () {
     if (value instanceof Unknown) {
       return;
@@ -120,9 +119,9 @@ const preValidateAttribute = (
     if (value == null) {
       switch (attribute.presence) {
         case "computed":
-        case "required_to_be_computed":
-        case "optional_or_computed":
         case "optional":
+        case "optional_or_computed":
+        case "required_to_be_computed":
           return;
         case "required":
           return yield* Diagnostics.error(
@@ -135,16 +134,13 @@ const preValidateAttribute = (
     }
 
     switch (attribute.type) {
-      case "string":
-      case "number":
       case "boolean":
+      case "number":
+      case "string":
         if (typeof value !== attribute.type) {
           return yield* Diagnostics.error(path, "Attribute has the wrong type");
         }
         return;
-
-      case "object":
-        return yield* preValidateObject(value, attribute.fields, path);
 
       case "list":
         if (!Array.isArray(value)) {
@@ -159,6 +155,9 @@ const preValidateAttribute = (
           ),
         );
         return;
+
+      case "object":
+        return yield* preValidateObject(value, attribute.fields, path);
       default:
         return unreachable(attribute);
     }
@@ -167,6 +166,6 @@ const preValidateAttribute = (
 export const preValidateSchema = (
   value: unknown,
   schema: Schema,
-): Effect.Effect<void | undefined, DiagnosticError, Diagnostics> => {
+): Effect.Effect<undefined | void, DiagnosticError, Diagnostics> => {
   return preValidateObject(value, schema.attributes, []);
 };

@@ -1,11 +1,12 @@
-import { Effect } from "effect";
 import {
-  schema,
-  tf,
-  providerBuilder,
   Diagnostics,
   diagnosticsPath,
+  providerBuilder,
+  schema,
+  tf,
 } from "@entropitor/terraform-provider-sdk";
+import { Effect } from "effect";
+
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 
 export const hashicupsProviderBuilder = providerBuilder({

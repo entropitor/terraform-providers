@@ -1,10 +1,11 @@
-import { Effect } from "effect";
 import {
-  schema,
-  tf,
   Diagnostics,
   requiresReplacementOnChange,
+  schema,
+  tf,
 } from "@entropitor/terraform-provider-sdk";
+import { Effect } from "effect";
+
 import { coolifyProviderBuilder } from "../builder.js";
 import { effectify } from "../effectify.js";
 
