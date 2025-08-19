@@ -127,6 +127,12 @@ importers:
       '@atcute/client':
         specifier: ^4.0.3
         version: 4.0.3
+      '@atcute/identity-resolver':
+        specifier: ^1.1.3
+        version: 1.1.3(@atcute/identity@1.0.3)
+      '@atcute/identity-resolver-node':
+        specifier: ^1.0.2
+        version: 1.0.2(@atcute/identity-resolver@1.1.3(@atcute/identity@1.0.3))(@atcute/identity@1.0.3)
       '@entropitor/terraform-provider-sdk':
         specifier: workspace:^
         version: link:../../libs/terraform-provider-sdk
@@ -176,11 +182,25 @@ packages:
   '@atcute/client@4.0.3':
     resolution: {integrity: sha512-RIOZWFVLca/HiPAAUDqQPOdOreCxTbL5cb+WUf5yqQOKIu5yEAP3eksinmlLmgIrlr5qVOE7brazUUzaskFCfw==}
 
+  '@atcute/identity-resolver-node@1.0.2':
+    resolution: {integrity: sha512-QhcnDr0vn3DAzGkLFU8md6MzLdm1xPt+65z/pkVO92ADhS4hoeX6esQIz/ucUiCEwroXUFLH07JZ1GLUo8hWIg==}
+    peerDependencies:
+      '@atcute/identity': ^1.0.0
+      '@atcute/identity-resolver': ^1.0.0
+
+  '@atcute/identity-resolver@1.1.3':
+    resolution: {integrity: sha512-KZgGgg99CWaV7Df3+h3X/WMrDzTPQVfsaoIVbTNLx2B56BvCL2EmaxPSVw/7BFUJMZHlVU4rtoEB4lyvNyMswA==}
+    peerDependencies:
+      '@atcute/identity': ^1.0.0
+
   '@atcute/identity@1.0.3':
     resolution: {integrity: sha512-mNMxbKHFGys03A8JXKk0KfMBzdd0vrYMzZZWjpw1nYTs0+ea6bo5S1hwqVUZxHdo1gFHSe/t63jxQIF4yL9aKw==}
 
   '@atcute/lexicons@1.1.0':
     resolution: {integrity: sha512-LFqwnria78xLYb62Ri/+WwQpUTgZp2DuyolNGIIOV1dpiKhFFFh//nscHMA6IExFLQRqWDs3tTjy7zv0h3sf1Q==}
+
+  '@atcute/util-fetch@1.0.1':
+    resolution: {integrity: sha512-Clc0E/5ufyGBVfYBUwWNlHONlZCoblSr4Ho50l1LhmRPGB1Wu/AQ9Sz+rsBg7fdaW/auve8ulmwhRhnX2cGRow==}
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -1155,6 +1175,19 @@ snapshots:
       '@atcute/identity': 1.0.3
       '@atcute/lexicons': 1.1.0
 
+  '@atcute/identity-resolver-node@1.0.2(@atcute/identity-resolver@1.1.3(@atcute/identity@1.0.3))(@atcute/identity@1.0.3)':
+    dependencies:
+      '@atcute/identity': 1.0.3
+      '@atcute/identity-resolver': 1.1.3(@atcute/identity@1.0.3)
+      '@atcute/lexicons': 1.1.0
+
+  '@atcute/identity-resolver@1.1.3(@atcute/identity@1.0.3)':
+    dependencies:
+      '@atcute/identity': 1.0.3
+      '@atcute/lexicons': 1.1.0
+      '@atcute/util-fetch': 1.0.1
+      '@badrap/valita': 0.4.6
+
   '@atcute/identity@1.0.3':
     dependencies:
       '@atcute/lexicons': 1.1.0
@@ -1163,6 +1196,10 @@ snapshots:
   '@atcute/lexicons@1.1.0':
     dependencies:
       esm-env: 1.2.2
+
+  '@atcute/util-fetch@1.0.1':
+    dependencies:
+      '@badrap/valita': 0.4.6
 
   '@babel/code-frame@7.27.1':
     dependencies:

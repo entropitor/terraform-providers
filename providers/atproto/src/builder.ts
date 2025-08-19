@@ -2,12 +2,23 @@ import { Client, CredentialManager } from "@atcute/client";
 export type { Client } from "@atcute/client";
 import type {} from "@atcute/atproto";
 import {
+  CompositeDidDocumentResolver,
+  CompositeHandleResolver,
+  PlcDidDocumentResolver,
+  WebDidDocumentResolver,
+  WellKnownHandleResolver,
+} from "@atcute/identity-resolver";
+import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
+import {
   diagnosticsPath,
   providerBuilder,
   schema,
   tf,
 } from "@entropitor/terraform-provider-sdk";
-import { DiagnosticError } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
+import {
+  DiagnosticError,
+  Diagnostics,
+} from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { Effect } from "effect";
 
 const messageFrom = (error: unknown) => {
@@ -26,8 +37,54 @@ export const atprotoProviderBuilder = providerBuilder({
 
   configure({ config }) {
     return Effect.gen(function* () {
+      const handleResolver = new CompositeHandleResolver({
+        strategy: "race",
+        methods: {
+          dns: new NodeDnsHandleResolver(),
+          http: new WellKnownHandleResolver(),
+        },
+      });
+      const didResolver = new CompositeDidDocumentResolver({
+        methods: {
+          plc: new PlcDidDocumentResolver(),
+          web: new WebDidDocumentResolver(),
+        },
+      });
+
+      const did = yield* Effect.tryPromise({
+        try: (signal) => handleResolver.resolve(config.handle, { signal }),
+        catch: (error) =>
+          DiagnosticError.from(
+            diagnosticsPath.for("handle"),
+            "Invalid handle",
+            messageFrom(error),
+          ),
+      });
+
+      const didDocument = yield* Effect.tryPromise({
+        try: (signal) => didResolver.resolve(did, { signal }),
+        catch: (error) =>
+          DiagnosticError.from(
+            diagnosticsPath.for("handle"),
+            "Failed did document resolution",
+            messageFrom(error),
+          ),
+      });
+
+      const pdsUrl = didDocument.service?.find(
+        (service) => service.id === "#atproto_pds",
+      )?.serviceEndpoint;
+
+      if (pdsUrl == null || typeof pdsUrl !== "string") {
+        return yield* Diagnostics.crit(
+          [diagnosticsPath.attribute("handle")],
+          "No pds url in did document",
+          "Your did document does not contain a service endpoint for the atproto protocol. Please ensure your did document is correctly configured.",
+        );
+      }
+
       const manager = new CredentialManager({
-        service: "https://bsky.social",
+        service: pdsUrl,
       });
       const rpc = new Client({ handler: manager });
 
