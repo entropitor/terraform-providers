@@ -29,10 +29,27 @@ export const pathFromDiagnostic = (
 
 export type DiagnosticMessage = MessageInitShape<typeof DiagnosticSchema>;
 
+export const errorDiagnostic = (
+  path: DiagnosticPath,
+  summary: string,
+  detail?: string,
+): DiagnosticMessage => ({
+  severity: Diagnostic_Severity.ERROR,
+  summary,
+  detail: detail ?? "",
+  attribute: {
+    steps: path.map((step) => ({ selector: step })),
+  },
+});
+
 export class DiagnosticError {
   readonly _tag = "DiagnosticError";
 
   constructor(readonly diagnostic: DiagnosticMessage) {}
+
+  static from(steps: DiagnosticPath, summary: string, detail?: string) {
+    return new DiagnosticError(errorDiagnostic(steps, summary, detail));
+  }
 }
 
 export class Diagnostics extends Effect.Tag("Diagnostics")<
@@ -67,26 +84,10 @@ export const provideDiagnostics = () =>
       });
     },
     error(steps, summary, detail) {
-      this.diagnostics.push({
-        severity: Diagnostic_Severity.ERROR,
-        summary,
-        detail: detail ?? "",
-        attribute: {
-          steps: steps.map((step) => ({ selector: step })),
-        },
-      });
+      this.diagnostics.push(errorDiagnostic(steps, summary, detail));
     },
     crit(steps, summary, detail) {
-      return Effect.fail(
-        new DiagnosticError({
-          severity: Diagnostic_Severity.ERROR,
-          summary,
-          detail: detail ?? "",
-          attribute: {
-            steps: steps.map((step) => ({ selector: step })),
-          },
-        }),
-      );
+      return Effect.fail(DiagnosticError.from(steps, summary, detail));
     },
   });
 
