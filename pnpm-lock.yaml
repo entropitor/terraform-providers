@@ -20,6 +20,9 @@ importers:
       '@connectrpc/protoc-gen-connect-es':
         specifier: ^1.6.1
         version: 1.6.1(@bufbuild/protoc-gen-es@2.6.3(@bufbuild/protobuf@2.6.3))(@connectrpc/connect@1.6.1(@bufbuild/protobuf@2.6.3))
+      '@effect/language-service':
+        specifier: ^0.35.2
+        version: 0.35.2
       '@eslint/js':
         specifier: ^9.33.0
         version: 9.33.0
@@ -255,6 +258,10 @@ packages:
         optional: true
       '@connectrpc/connect':
         optional: true
+
+  '@effect/language-service@0.35.2':
+    resolution: {integrity: sha512-J7GbtthuYeruD4kYUHn3QEZtbl9v7OX9+ElD20mDBGBMA+Q6W4KnVMxZc+yDvKQBBYvfXImVUSzBbXzbrZJpyg==}
+    hasBin: true
 
   '@eslint-community/eslint-utils@4.7.0':
     resolution: {integrity: sha512-dyybb3AcajC7uha6CvhdVRJqaKyn7w2YKqKyAN37NKYgZT36w+iRb0Dymmc5qEJ549c/S31cMMSFd75bteCpCw==}
@@ -1192,6 +1199,8 @@ snapshots:
       '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@2.6.3)
     transitivePeerDependencies:
       - supports-color
+
+  '@effect/language-service@0.35.2': {}
 
   '@eslint-community/eslint-utils@4.7.0(eslint@9.33.0)':
     dependencies:

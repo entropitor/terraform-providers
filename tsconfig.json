@@ -15,6 +15,12 @@
     "declaration": true,
     "declarationMap": true,
 
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ],
+
     // Doesn't work well currently with the providers themselves
     "exactOptionalPropertyTypes": false
   }
