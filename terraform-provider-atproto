@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$(dirname "${BASH_SOURCE[0]}")"
+pnpm run types >/dev/null 2>&1
+bun run providers/atproto/src/index.ts

@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/"
+  },
+  "references": [
+    {
+      "path": "../../libs/terraform-provider-sdk"
+    }
+  ]
+}

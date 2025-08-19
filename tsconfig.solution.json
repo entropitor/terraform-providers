@@ -4,6 +4,7 @@
     { "path": "libs/hashicorp-plugin" },
     { "path": "libs/kv-plugin" },
     { "path": "libs/terraform-provider-sdk" },
+    { "path": "providers/atproto" },
     { "path": "providers/coolify" },
     { "path": "providers/hashicups" }
   ],

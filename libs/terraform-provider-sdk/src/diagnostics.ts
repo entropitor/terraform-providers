@@ -20,6 +20,12 @@ export const diagnosticsPath = {
       case: "elementKeyInt",
       value: BigInt(index),
     }) as const,
+  for: (...attributes: Array<number | string>) =>
+    attributes.map((attribute) =>
+      typeof attribute === "string" ?
+        diagnosticsPath.attribute(attribute)
+      : diagnosticsPath.elementIndex(attribute),
+    ),
 };
 
 export const pathFromDiagnostic = (
