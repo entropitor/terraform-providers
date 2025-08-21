@@ -383,10 +383,7 @@ export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<
   ConfigForNormalAttributes<TSchema> & ConfigForUnionAttributes<TSchema>
 >;
 
-type OptionalPresenceInState =
-  | "computed"
-  | "computed_if_not_given"
-  | "optional";
+type OptionalPresenceInState = "computed" | "optional";
 type StateForOptionalAttributes<TSchema extends Schema> = {
   [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends (
     OptionalPresenceInState
