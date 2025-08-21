@@ -317,7 +317,7 @@ type ConfigForAttribute<TAttribute extends Attribute> =
     : TAttribute extends { type: "object" } ?
       {
         [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends (
-          "computed"
+          "computed" | "required_to_be_computed"
         ) ?
           never
         : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
@@ -325,7 +325,7 @@ type ConfigForAttribute<TAttribute extends Attribute> =
     : TAttribute extends { type: "list" } ?
       Array<{
         [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends (
-          "computed"
+          "computed" | "required_to_be_computed"
         ) ?
           never
         : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
