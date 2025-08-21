@@ -26,3 +26,11 @@ data "atproto_identity" "current" {}
 output "did" {
   value = data.atproto_identity.current.did
 }
+
+resource "atproto_record" "status" {
+  rkey       = "first"
+  collection = "xyz.statusphere.status"
+  record = {
+    status = "🌐"
+  }
+}
