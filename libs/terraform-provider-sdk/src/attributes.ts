@@ -23,8 +23,8 @@ type AttributeType =
 
 type Presence =
   | "computed"
+  | "computed_if_not_given"
   | "optional"
-  | "optional_or_computed"
   | "required"
   | "required_to_be_computed";
 
@@ -122,10 +122,10 @@ const presenceFrom = (
     case "computed":
     case "required_to_be_computed":
       return { required: false, optional: false, computed: true };
+    case "computed_if_not_given":
+      return { required: false, optional: true, computed: true };
     case "optional":
       return { required: false, optional: true, computed: false };
-    case "optional_or_computed":
-      return { required: false, optional: true, computed: true };
     case "required":
       if (insideUnion) {
         return { required: false, optional: true, computed: false };
@@ -266,6 +266,18 @@ export const tf = {
     list: <TFields extends Fields>(fields: TFields) =>
       new CompositeAttribute("list", "computed", fields),
   },
+  computedIfNotGiven: {
+    boolean: () => new PrimitiveAttribute("boolean", "computed_if_not_given"),
+    string: () => new PrimitiveAttribute("string", "computed_if_not_given"),
+    number: () => new PrimitiveAttribute("number", "computed_if_not_given"),
+    object: <TFields extends Fields>(fields: TFields) =>
+      new CompositeAttribute("object", "computed_if_not_given", fields),
+    list: <TFields extends Fields>(fields: TFields) =>
+      new CompositeAttribute("list", "computed_if_not_given", fields),
+  },
+  // TODO: rename to computed and make computed nullableComputed instead
+  // or move it into computed.nullable and computed.nonNullable
+  // and maybe do the same for computedIfNotGiven
   alwaysComputed: {
     boolean: () => new PrimitiveAttribute("boolean", "required_to_be_computed"),
     string: () => new PrimitiveAttribute("string", "required_to_be_computed"),
@@ -371,7 +383,10 @@ export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<
   ConfigForNormalAttributes<TSchema> & ConfigForUnionAttributes<TSchema>
 >;
 
-type OptionalPresenceInState = "computed" | "optional" | "optional_or_computed";
+type OptionalPresenceInState =
+  | "computed"
+  | "computed_if_not_given"
+  | "optional";
 type StateForOptionalAttributes<TSchema extends Schema> = {
   [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends (
     OptionalPresenceInState

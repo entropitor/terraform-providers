@@ -71,6 +71,20 @@ const preprocessObject = (
     return Object.fromEntries(newEntries.flat());
   });
 
+const shouldPlanComputed = (attribute: Attribute) => {
+  switch (attribute.presence) {
+    case "computed":
+    case "computed_if_not_given":
+    case "required_to_be_computed":
+      return true;
+    case "optional":
+    case "required":
+      return false;
+    default:
+      return unreachable(attribute.presence);
+  }
+};
+
 const preprocessAttribute = (
   prior: any,
   proposed: any,
@@ -83,7 +97,7 @@ const preprocessAttribute = (
       yield* RequiresReplacementTracker.add(path);
     }
 
-    if (attribute.presence === "computed" && proposed == null) {
+    if (shouldPlanComputed(attribute) && proposed == null) {
       return prior ?? new Unknown();
     }
 

@@ -120,8 +120,8 @@ const preValidateAttribute = (
     if (value == null) {
       switch (attribute.presence) {
         case "computed":
+        case "computed_if_not_given":
         case "optional":
-        case "optional_or_computed":
         case "required_to_be_computed":
           return;
         case "required":
