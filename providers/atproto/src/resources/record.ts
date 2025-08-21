@@ -1,4 +1,10 @@
-import { schema, tf, Unknown } from "@entropitor/terraform-provider-sdk";
+import {
+  attributeType,
+  schema,
+  tf,
+  transform,
+  Unknown,
+} from "@entropitor/terraform-provider-sdk";
 import { DiagnosticError } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { Effect } from "effect";
 
@@ -7,7 +13,12 @@ import { atprotoProviderBuilder } from "../builder.js";
 export const atprotoRecordResource = atprotoProviderBuilder.resource({
   schema: schema({
     rkey: tf.computedIfNotGiven.string(),
-    collection: tf.required.string(),
+    collection: tf.required.custom(
+      transform(
+        attributeType.string,
+        (s) => s as `${string}.${string}.${string}`,
+      ),
+    ),
     record: tf.required.object({
       status: tf.required.string(),
     }),

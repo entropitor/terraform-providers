@@ -16,6 +16,7 @@ type SchemaAttributeMessage = MessageInitShape<typeof Schema_AttributeSchema>;
 
 type AttributeType =
   | { type: "boolean" }
+  | { type: "custom"; _T: any; originalType: AttributeType }
   | { type: "list"; fields: Record<string, Attribute> }
   | { type: "number" }
   | { type: "object"; fields: Record<string, Attribute> }
@@ -58,6 +59,25 @@ abstract class BaseAttribute implements Pipeable {
   pipe() {
     // eslint-disable-next-line prefer-rest-params
     return pipeArguments(this, arguments);
+  }
+}
+
+class CustomAttribute<
+  TType extends IAttributeType<any>,
+  TPresence extends Presence,
+> extends BaseAttribute {
+  readonly type = "custom";
+  readonly _T!: TType["_T"];
+
+  get originalType() {
+    return this.customType.originialType;
+  }
+
+  constructor(
+    public readonly customType: TType,
+    public readonly presence: TPresence,
+  ) {
+    super();
   }
 }
 
@@ -137,11 +157,13 @@ const presenceFrom = (
 };
 
 const typeFrom = (
-  attr: Attribute,
+  attr: AttributeType,
 ): Pick<SchemaAttributeMessage, "nestedType" | "type"> => {
   switch (attr.type) {
     case "boolean":
       return { type: Buffer.from('"bool"') };
+    case "custom":
+      return typeFrom(attr.originalType);
     case "list":
       return {
         nestedType: {
@@ -238,6 +260,40 @@ class SchemaInternal<TFields extends Fields> implements Pipeable {
   }
 }
 
+type IAttributeType<T> = {
+  _T: T;
+  readonly originialType: AttributeType;
+};
+
+class StringAttributeType implements IAttributeType<string> {
+  readonly _T!: string;
+  readonly originialType = { type: "string" } as const;
+}
+class TransformAttributeType<TFrom, TResult>
+  implements IAttributeType<TResult>
+{
+  readonly _T!: TResult;
+  get originialType() {
+    return this.originalAttributeType.originialType;
+  }
+
+  constructor(
+    public readonly originalAttributeType: IAttributeType<TFrom>,
+    public readonly fn: (value: TFrom) => TResult,
+  ) {}
+}
+
+export const attributeType = {
+  string: new StringAttributeType(),
+};
+
+export const transform = <TFrom, TResult>(
+  originalType: IAttributeType<TFrom>,
+  fn: (value: TFrom) => TResult,
+): IAttributeType<TResult> => {
+  return new TransformAttributeType(originalType, fn);
+};
+
 export const tf = {
   optional: {
     boolean: () => new PrimitiveAttribute("boolean", "optional"),
@@ -250,6 +306,8 @@ export const tf = {
   },
   required: {
     boolean: () => new PrimitiveAttribute("boolean", "required"),
+    custom: <T>(customType: IAttributeType<T>) =>
+      new CustomAttribute(customType, "required"),
     string: () => new PrimitiveAttribute("string", "required"),
     number: () => new PrimitiveAttribute("number", "required"),
     object: <TFields extends Fields>(fields: TFields) =>
@@ -309,9 +367,10 @@ export const requiresReplacementOnChange =
     requiresReplacementOnChange: true,
   });
 
-type ConfigForAttribute<TAttribute extends Attribute> =
+type ConfigForAttribute<TAttribute extends AttributeType> =
   ForceTypescriptComputation<
-    TAttribute extends { type: "string" } ? string
+    TAttribute extends { type: "custom" } ? TAttribute["_T"]
+    : TAttribute extends { type: "string" } ? string
     : TAttribute extends { type: "number" } ? number
     : TAttribute extends { type: "boolean" } ? boolean
     : TAttribute extends { type: "object" } ?

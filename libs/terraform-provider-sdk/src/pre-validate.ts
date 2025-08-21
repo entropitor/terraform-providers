@@ -143,6 +143,13 @@ const preValidateAttribute = (
         }
         return;
 
+      case "custom":
+        // TODO: run custom validation function
+        if (typeof value !== attribute.originalType.type) {
+          return yield* Diagnostics.error(path, "Attribute has the wrong type");
+        }
+        return;
+
       case "list":
         if (!Array.isArray(value)) {
           return yield* Diagnostics.error(path, "Attribute has the wrong type");

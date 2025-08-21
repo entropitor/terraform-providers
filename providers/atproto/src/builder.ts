@@ -10,10 +10,12 @@ import {
 } from "@atcute/identity-resolver";
 import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
 import {
+  attributeType,
   diagnosticsPath,
   providerBuilder,
   schema,
   tf,
+  transform,
 } from "@entropitor/terraform-provider-sdk";
 import {
   DiagnosticError,
@@ -31,7 +33,9 @@ const messageFrom = (error: unknown) => {
 export const atprotoProviderBuilder = providerBuilder({
   name: "atproto",
   schema: schema({
-    handle: tf.required.string(),
+    handle: tf.required.custom(
+      transform(attributeType.string, (s) => s as `${string}.${string}`),
+    ),
     app_password: tf.required.string(),
   }),
 
