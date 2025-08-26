@@ -103,8 +103,10 @@ export class UnionAttribute<
   fieldNamesIfAllAlternativesAreSingleRequiredFields(): null | string[] {
     const names = this.alternatives.map((alternative) => {
       const keys = Object.keys(alternative);
-      return keys.length === 1 && alternative[keys[0]!]!.presence === "required"
-        ? keys[0]!
+      return (
+          keys.length === 1 && alternative[keys[0]!]!.presence === "required"
+        ) ?
+          keys[0]!
         : null;
     });
     const filteredNames = names.filter((name) => name != null);
@@ -181,9 +183,9 @@ export const attributeListFrom = (
       return [
         {
           name,
-          ...(attr.description != null
-            ? { description: attr.description }
-            : {}),
+          ...(attr.description != null ?
+            { description: attr.description }
+          : {}),
           ...presenceFrom(attr, insideUnion),
           ...typeFrom(attr),
         },
@@ -200,9 +202,9 @@ export const toTerraformSchema = (schema: Schema): SchemaMessage => {
   return {
     block: {
       attributes: attributeListFrom(schema.attributes),
-      ...(schema.description != null
-        ? { description: schema.description }
-        : {}),
+      ...(schema.description != null ?
+        { description: schema.description }
+      : {}),
     },
   };
 };
@@ -297,72 +299,73 @@ export const requiresReplacementOnChange =
 
 type ConfigForAttribute<TAttribute extends Attribute> =
   ForceTypescriptComputation<
-    TAttribute extends { type: "string" }
-      ? string
-      : TAttribute extends { type: "number" }
-        ? number
-        : TAttribute extends { type: "boolean" }
-          ? boolean
-          : TAttribute extends { type: "object" }
-            ? {
-                [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends "computed"
-                  ? never
-                  : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
-              }
-            : TAttribute extends { type: "list" }
-              ? Array<{
-                  [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends "computed"
-                    ? never
-                    : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
-                }>
-              : never
+    TAttribute extends { type: "string" } ? string
+    : TAttribute extends { type: "number" } ? number
+    : TAttribute extends { type: "boolean" } ? boolean
+    : TAttribute extends { type: "object" } ?
+      {
+        [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends (
+          "computed"
+        ) ?
+          never
+        : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
+      }
+    : TAttribute extends { type: "list" } ?
+      Array<{
+        [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends (
+          "computed"
+        ) ?
+          never
+        : TField]: ConfigForAttribute<TAttribute["fields"][TField]>;
+      }>
+    : never
   >;
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I,
-) => void
-  ? I
+type UnionToIntersection<U> =
+  (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I
   : never;
 
 type UnionAttributeFields<TSchema extends Schema> = {
-  [TField in keyof TSchema["attributes"]]: TSchema["attributes"][TField] extends UnionAttribute<any>
-    ? TField
-    : never;
+  [TField in keyof TSchema["attributes"]]: TSchema["attributes"][TField] extends (
+    UnionAttribute<any>
+  ) ?
+    TField
+  : never;
 }[keyof TSchema["attributes"]];
 type Element<T> = T extends any[] ? T[number] : never;
 
 export type ConfigForNormalAttributes<TSchema extends Schema> = {
-  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends
-    | "computed"
-    | "union"
-    ? never
-    : TField]: TSchema["attributes"][TField] extends infer TAttribute extends
-    Attribute
-    ? TAttribute["presence"] extends "optional"
-      ? ConfigForAttribute<TAttribute> | undefined
-      : ConfigForAttribute<TAttribute>
-    : never;
+  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends (
+    "computed" | "union"
+  ) ?
+    never
+  : TField]: TSchema["attributes"][TField] extends (
+    infer TAttribute extends Attribute
+  ) ?
+    TAttribute["presence"] extends "optional" ?
+      ConfigForAttribute<TAttribute> | undefined
+    : ConfigForAttribute<TAttribute>
+  : never;
 };
 type ConfigForUnionAttributes<TSchema extends Schema> =
-  UnionAttributeFields<TSchema> extends never
-    ? {}
-    : Element<
-        UnionToIntersection<
-          {
-            [TField in UnionAttributeFields<TSchema>]: TSchema["attributes"][TField] extends UnionAttribute<
-              Array<infer TAlternative extends AttributeFields>
-            >
-              ? [
-                  TAlternative extends Fields
-                    ? ConfigForNormalAttributes<{
-                        attributes: TAlternative;
-                      }>
-                    : never,
-                ]
-              : never;
-          }[UnionAttributeFields<TSchema>]
-        >
-      >;
+  UnionAttributeFields<TSchema> extends never ? {}
+  : Element<
+      UnionToIntersection<
+        {
+          [TField in UnionAttributeFields<TSchema>]: TSchema["attributes"][TField] extends (
+            UnionAttribute<Array<infer TAlternative extends AttributeFields>>
+          ) ?
+            [
+              TAlternative extends Fields ?
+                ConfigForNormalAttributes<{
+                  attributes: TAlternative;
+                }>
+              : never,
+            ]
+          : never;
+        }[UnionAttributeFields<TSchema>]
+      >
+    >;
 
 export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<
   ConfigForNormalAttributes<TSchema> & ConfigForUnionAttributes<TSchema>
@@ -370,45 +373,48 @@ export type ConfigFor<TSchema extends Schema> = ForceTypescriptComputation<
 
 type OptionalPresenceInState = "computed" | "optional" | "optional_or_computed";
 type StateForOptionalAttributes<TSchema extends Schema> = {
-  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends OptionalPresenceInState
-    ? TField
-    : never]+?: TSchema["attributes"][TField] extends infer TAttribute extends
-    Attribute
-    ? ConfigForAttribute<TAttribute> | undefined
-    : never;
+  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends (
+    OptionalPresenceInState
+  ) ?
+    TField
+  : never]+?: TSchema["attributes"][TField] extends (
+    infer TAttribute extends Attribute
+  ) ?
+    ConfigForAttribute<TAttribute> | undefined
+  : never;
 };
 
 type StateForRequiredAttribute<TSchema extends Schema> = {
-  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends
-    | "union"
-    | OptionalPresenceInState
-    ? never
-    : TField]: TSchema["attributes"][TField] extends infer TAttribute extends
-    Attribute
-    ? ConfigForAttribute<TAttribute>
-    : never;
+  [TField in keyof TSchema["attributes"] as TSchema["attributes"][TField]["presence"] extends (
+    "union" | OptionalPresenceInState
+  ) ?
+    never
+  : TField]: TSchema["attributes"][TField] extends (
+    infer TAttribute extends Attribute
+  ) ?
+    ConfigForAttribute<TAttribute>
+  : never;
 };
 
 type StateForUnionAttributes<TSchema extends Schema> =
-  UnionAttributeFields<TSchema> extends never
-    ? {}
-    : Element<
-        UnionToIntersection<
-          {
-            [TField in UnionAttributeFields<TSchema>]: TSchema["attributes"][TField] extends UnionAttribute<
-              Array<infer TAlternative extends AttributeFields>
-            >
-              ? [
-                  TAlternative extends Fields
-                    ? StateForNormalAttributes<{
-                        attributes: TAlternative;
-                      }>
-                    : never,
-                ]
-              : never;
-          }[UnionAttributeFields<TSchema>]
-        >
-      >;
+  UnionAttributeFields<TSchema> extends never ? {}
+  : Element<
+      UnionToIntersection<
+        {
+          [TField in UnionAttributeFields<TSchema>]: TSchema["attributes"][TField] extends (
+            UnionAttribute<Array<infer TAlternative extends AttributeFields>>
+          ) ?
+            [
+              TAlternative extends Fields ?
+                StateForNormalAttributes<{
+                  attributes: TAlternative;
+                }>
+              : never,
+            ]
+          : never;
+        }[UnionAttributeFields<TSchema>]
+      >
+    >;
 
 type StateForNormalAttributes<TSchema extends Schema> =
   StateForOptionalAttributes<TSchema> & StateForRequiredAttribute<TSchema>;

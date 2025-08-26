@@ -34,5 +34,8 @@
   "workspaces": [
     "libs/*",
     "providers/*"
-  ]
+  ],
+  "prettier": {
+    "experimentalTernaries": true
+  }
 }
