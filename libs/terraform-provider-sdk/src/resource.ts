@@ -4,7 +4,7 @@ import type { HandlerContext } from "@connectrpc/connect";
 import { Effect } from "effect";
 
 import type { ConfigFor, Schema, StateFor } from "./attributes.js";
-import { decode, encodeWithSchema } from "./codec.js";
+import { decodeWithSchema, encodeWithSchema } from "./codec.js";
 import type { DiagnosticError, Diagnostics } from "./diagnostics.js";
 import { withDiagnostics } from "./diagnostics.js";
 import {
@@ -147,7 +147,10 @@ export const createResource = <TResourceSchema extends Schema, TState>(
         "[ERROR] validateResourceConfig",
         provider.providerInstanceId,
       );
-      const config: ResourceConfig = decode(req.config!.msgpack);
+      const config: ResourceConfig = decodeWithSchema(
+        req.config!.msgpack,
+        resource.schema,
+      );
 
       return await Effect.runPromise(
         Effect.gen(function* () {
@@ -170,10 +173,17 @@ export const createResource = <TResourceSchema extends Schema, TState>(
 
       const [response, requiresReplace] = await Effect.runPromise(
         Effect.gen(function* () {
-          const priorState: ResourceState = decode(req.priorState!.msgpack);
+          const priorState: ResourceState = decodeWithSchema(
+            req.priorState!.msgpack,
+            resource.schema,
+          );
           const proposedNewState: ResourceState = yield* preprocessPlan<
             typeof resource.schema
-          >(resource.schema, priorState, decode(req.proposedNewState!.msgpack));
+          >(
+            resource.schema,
+            priorState,
+            decodeWithSchema(req.proposedNewState!.msgpack, resource.schema),
+          );
 
           if (resource.plan == null) {
             return {
@@ -183,7 +193,10 @@ export const createResource = <TResourceSchema extends Schema, TState>(
             };
           }
 
-          const config: ResourceConfig = decode(req.config!.msgpack);
+          const config: ResourceConfig = decodeWithSchema(
+            req.config!.msgpack,
+            resource.schema,
+          );
           const same =
             req.proposedNewState?.msgpack.length ===
               req.priorState?.msgpack.length &&
@@ -226,8 +239,14 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       ctx: HandlerContext,
     ) {
       console.error("[ERROR] applyResourceChange", provider.providerInstanceId);
-      const config: null | ResourceConfig = decode(req.config!.msgpack);
-      const priorState: null | ResourceState = decode(req.priorState!.msgpack);
+      const config: null | ResourceConfig = decodeWithSchema(
+        req.config!.msgpack,
+        resource.schema,
+      );
+      const priorState: null | ResourceState = decodeWithSchema(
+        req.priorState!.msgpack,
+        resource.schema,
+      );
 
       return await Effect.runPromise(
         Effect.gen(function* () {
@@ -268,8 +287,9 @@ export const createResource = <TResourceSchema extends Schema, TState>(
     },
     async readResource(req: ReadResource_Request, ctx: HandlerContext) {
       console.error("[ERROR] readResource", provider.providerInstanceId);
-      const savedState: null | ResourceState = decode(
+      const savedState: null | ResourceState = decodeWithSchema(
         req.currentState!.msgpack,
+        resource.schema,
       );
       if (savedState == null) {
         return {

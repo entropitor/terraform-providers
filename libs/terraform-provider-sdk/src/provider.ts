@@ -4,7 +4,7 @@ import { Effect } from "effect";
 
 import type { ConfigFor, Schema } from "./attributes.js";
 import { toTerraformSchema } from "./attributes.js";
-import { decode, Unknown } from "./codec.js";
+import { decodeWithSchema, Unknown } from "./codec.js";
 import {
   createDataSource,
   type DataSource,
@@ -129,7 +129,10 @@ class ProviderBuilder<
 
       async validateProviderConfig(req, ctx) {
         console.error("[ERROR] validateProviderConfig", providerInstanceId);
-        const config: ProviderConfig = decode(req.config!.msgpack);
+        const config: ProviderConfig = decodeWithSchema(
+          req.config!.msgpack,
+          provider.schema,
+        );
 
         // This happens during terraform tests, not sure if it happens in normal usage
         if (Object.values(config).every((value) => value instanceof Unknown)) {
@@ -154,7 +157,10 @@ class ProviderBuilder<
       async configureProvider(req, ctx) {
         console.error("[ERROR] configureProvider", providerInstanceId);
 
-        const config: ProviderConfig = decode(req.config!.msgpack);
+        const config: ProviderConfig = decodeWithSchema(
+          req.config!.msgpack,
+          provider.schema,
+        );
         const result = await Effect.runPromise(
           provider.configure({ config }).pipe(
             withDiagnostics(),

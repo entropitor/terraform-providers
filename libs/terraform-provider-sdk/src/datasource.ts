@@ -4,7 +4,7 @@ import type { HandlerContext } from "@connectrpc/connect";
 import { Effect } from "effect";
 
 import type { ConfigFor, Schema, StateFor } from "./attributes.js";
-import { decode, encodeWithSchema } from "./codec.js";
+import { decodeWithSchema, encodeWithSchema } from "./codec.js";
 import type { DiagnosticError } from "./diagnostics.js";
 import { type Diagnostics, withDiagnostics } from "./diagnostics.js";
 import type {
@@ -67,7 +67,10 @@ export const createDataSource = <TDataSourceSchema extends Schema, TState>(
         provider.providerInstanceId,
       );
 
-      const config: DataSourceConfig = decode(req.config!.msgpack);
+      const config: DataSourceConfig = decodeWithSchema(
+        req.config!.msgpack,
+        datasource.schema,
+      );
       return await Effect.runPromise(
         Effect.gen(function* () {
           yield* preValidateSchema(config, datasource.schema);
@@ -85,7 +88,10 @@ export const createDataSource = <TDataSourceSchema extends Schema, TState>(
     },
     async readDataSource(req: ReadDataSource_Request, ctx: HandlerContext) {
       console.error("[ERROR] readDataSource", provider.providerInstanceId);
-      const config: DataSourceConfig = decode(req.config!.msgpack);
+      const config: DataSourceConfig = decodeWithSchema(
+        req.config!.msgpack,
+        datasource.schema,
+      );
       return await Effect.runPromise(
         datasource.read({ config }, provider.state).pipe(
           Effect.map((resp) => ({

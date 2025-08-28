@@ -33,11 +33,11 @@ extensionCodec.register({
   },
 });
 const encode = (value: unknown) => msgpackEncode(value, { extensionCodec });
-export const decode = (
-  value: ArrayBufferLike | ArrayBufferView | ArrayLike<number>,
-) => msgpackDecode(value, { extensionCodec }) as any;
+type Decodable = ArrayBufferLike | ArrayBufferView | ArrayLike<number>;
+export const decode = (value: Decodable) =>
+  msgpackDecode(value, { extensionCodec }) as any;
 
-const mapObject = (value: any, fields: Fields) => {
+const encodeObject = (value: any, fields: Fields) => {
   if (value == null || value instanceof Unknown) {
     return value;
   }
@@ -46,15 +46,45 @@ const mapObject = (value: any, fields: Fields) => {
       if (field instanceof UnionAttribute) {
         return field.alternatives.flatMap(
           (alternative: UnionAttribute["alternatives"][number]) =>
-            Object.entries(mapObject(value, alternative)),
+            Object.entries(encodeObject(value, alternative)),
         );
       }
-      return [[fieldName, mapAttribute(value[fieldName], field)]];
+      return [[fieldName, encodeAttribute(value[fieldName], field)]];
     }),
   );
 };
-const mapAttribute = (value: any, attribute: Attribute): unknown => {
+const getTypeOf = (value: any): any => {
+  // ["object",{"$type":"string","createdAt":"string","status":"string"}]
+  switch (typeof value) {
+    case "boolean":
+      return "bool";
+    case "number":
+    case "string":
+      return typeof value;
+    case "object":
+      if (Array.isArray(value)) {
+        return ["list", getTypeOf(value[0])];
+      }
+      if (value instanceof Set) {
+        return ["set", getTypeOf(value.values().next().value)];
+      }
+      return [
+        "object",
+        Object.fromEntries(
+          Object.entries(value).map(([key, childValue]) => [
+            key,
+            getTypeOf(childValue),
+          ]),
+        ),
+      ];
+  }
+};
+const encodeAttribute = (value: any, attribute: Attribute): unknown => {
   switch (attribute.type) {
+    case "any": {
+      const type = getTypeOf(value);
+      return [Buffer.from(JSON.stringify(type)), value];
+    }
     case "boolean":
     case "custom":
     case "number":
@@ -64,17 +94,56 @@ const mapAttribute = (value: any, attribute: Attribute): unknown => {
       if (value == null || value instanceof Unknown) {
         return value;
       }
-      return value.map((item: any) => mapObject(item, attribute.fields));
+      return value.map((item: any) => encodeObject(item, attribute.fields));
     case "object":
-      return mapObject(value, attribute.fields);
+      return encodeObject(value, attribute.fields);
     default:
       return unreachable(attribute);
   }
 };
-const mapSchema = (value: any, schema: Schema) => {
-  return mapObject(value, schema.attributes);
-};
 
 export const encodeWithSchema = (state: unknown, schema: Schema) => {
-  return encode(mapSchema(state, schema));
+  return encode(encodeObject(state, schema.attributes));
+};
+
+const postDecodeObject = (value: any, fields: Fields) => {
+  if (value == null || value instanceof Unknown) {
+    return value;
+  }
+  return Object.fromEntries(
+    Object.entries(fields).flatMap(([fieldName, field]) => {
+      if (field instanceof UnionAttribute) {
+        return field.alternatives.flatMap(
+          (alternative: UnionAttribute["alternatives"][number]) =>
+            Object.entries(postDecodeObject(value, alternative)),
+        );
+      }
+      return [[fieldName, postDecodeAttribute(value[fieldName], field)]];
+    }),
+  );
+};
+const postDecodeAttribute = (value: any, attribute: Attribute): unknown => {
+  switch (attribute.type) {
+    case "any":
+      // First entry in the tuple is the type
+      return value[1];
+    case "boolean":
+    case "custom":
+    case "number":
+    case "string":
+      return value;
+    case "list":
+      if (value == null || value instanceof Unknown) {
+        return value;
+      }
+      return value.map((item: any) => postDecodeObject(item, attribute.fields));
+    case "object":
+      return postDecodeObject(value, attribute.fields);
+    default:
+      return unreachable(attribute);
+  }
+};
+
+export const decodeWithSchema = (buffer: Decodable, schema: Schema) => {
+  return postDecodeObject(decode(buffer), schema.attributes);
 };

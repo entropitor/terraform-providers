@@ -135,6 +135,9 @@ const preValidateAttribute = (
     }
 
     switch (attribute.type) {
+      case "any":
+        return;
+
       case "boolean":
       case "number":
       case "string":

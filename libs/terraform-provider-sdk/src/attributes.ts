@@ -15,6 +15,7 @@ type SchemaMessage = MessageInitShape<typeof SchemaSchema>;
 type SchemaAttributeMessage = MessageInitShape<typeof Schema_AttributeSchema>;
 
 type AttributeType =
+  | { type: "any" }
   | { type: "boolean" }
   | { type: "custom"; _T: any; originalType: AttributeType }
   | { type: "list"; fields: Record<string, Attribute> }
@@ -82,7 +83,7 @@ class CustomAttribute<
 }
 
 class PrimitiveAttribute<
-  TType extends "boolean" | "number" | "string",
+  TType extends "any" | "boolean" | "number" | "string",
   TPresence extends Presence,
 > extends BaseAttribute {
   constructor(
@@ -160,6 +161,8 @@ const typeFrom = (
   attr: AttributeType,
 ): Pick<SchemaAttributeMessage, "nestedType" | "type"> => {
   switch (attr.type) {
+    case "any":
+      return { type: Buffer.from('"dynamic"') };
     case "boolean":
       return { type: Buffer.from('"bool"') };
     case "custom":
@@ -174,7 +177,6 @@ const typeFrom = (
       };
     case "number":
       return { type: Buffer.from('"number"') };
-
     case "object":
       return {
         nestedType: {
@@ -185,7 +187,6 @@ const typeFrom = (
       };
     case "string":
       return { type: Buffer.from('"string"') };
-
     default:
       return unreachable(attr);
   }
@@ -305,6 +306,7 @@ export const tf = {
       new CompositeAttribute("list", "optional", fields),
   },
   required: {
+    any: () => new PrimitiveAttribute("any", "required"),
     boolean: () => new PrimitiveAttribute("boolean", "required"),
     custom: <T>(customType: IAttributeType<T>) =>
       new CustomAttribute(customType, "required"),
@@ -373,6 +375,7 @@ type ConfigForAttribute<TAttribute extends AttributeType> =
     : TAttribute extends { type: "string" } ? string
     : TAttribute extends { type: "number" } ? number
     : TAttribute extends { type: "boolean" } ? boolean
+    : TAttribute extends { type: "any" } ? unknown
     : TAttribute extends { type: "object" } ?
       {
         [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends (
