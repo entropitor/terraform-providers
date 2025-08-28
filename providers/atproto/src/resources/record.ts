@@ -19,9 +19,7 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
         (s) => s as `${string}.${string}.${string}`,
       ),
     ),
-    record: tf.required.object({
-      status: tf.required.string(),
-    }),
+    record: tf.required.any(),
     cid: tf.alwaysComputed.string(),
   }),
 
@@ -69,16 +67,11 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
 
   create({ config }, client) {
     return Effect.gen(function* () {
-      const record = {
-        $type: "xyz.statusphere.status",
-        status: config.record.status,
-        createdAt: new Date().toISOString(),
-      };
       const response = yield* Effect.promise(() =>
         client.rpc.post("com.atproto.repo.createRecord", {
           input: {
             collection: config.collection,
-            record,
+            record: config.record,
             repo: client.session.did,
             rkey: config.rkey,
           },
@@ -95,7 +88,7 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
       }
       return {
         newState: {
-          record,
+          record: config.record,
           rkey: config.rkey,
           collection: config.collection,
           cid: response.data.cid,
@@ -105,18 +98,13 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
   },
   update({ config, priorState: prior }, client) {
     return Effect.gen(function* () {
-      const record = {
-        $type: "xyz.statusphere.status",
-        status: config.record.status,
-        createdAt: prior.record.createdAt,
-      };
       const response = yield* Effect.promise(() =>
         client.rpc.post("com.atproto.repo.putRecord", {
           input: {
             repo: client.session.did,
             collection: prior.collection,
             rkey: prior.rkey,
-            record,
+            record: config.record,
           },
         }),
       );
@@ -131,7 +119,7 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
       }
       return {
         newState: {
-          record,
+          record: config.record,
           rkey: config.rkey,
           collection: config.collection,
           cid: response.data.cid,

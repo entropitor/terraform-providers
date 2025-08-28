@@ -31,6 +31,8 @@ resource "atproto_record" "status" {
   rkey       = "first"
   collection = "xyz.statusphere.status"
   record = {
-    status = "🌐"
+    "$type"   = "xyz.statusphere.status"
+    createdAt = "2025-08-28T05:43:47.483Z"
+    status    = "🌐"
   }
 }
