@@ -10,7 +10,6 @@ import { Effect } from "effect";
 import { HashiCupsApiClient } from "./HashiCupsApiClient.js";
 
 export const hashicupsProviderBuilder = providerBuilder({
-  name: "hashicups",
   schema: schema({
     host: tf.required.string(),
     username: tf.required.string(),

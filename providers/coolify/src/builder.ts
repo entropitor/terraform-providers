@@ -11,7 +11,6 @@ import createClient from "openapi-fetch";
 import type { paths } from "./gen/coolify-api-schema.js";
 
 export const coolifyProviderBuilder = providerBuilder({
-  name: "coolify",
   schema: schema({
     base_url: tf.required.string(),
     token: tf.required.string(),

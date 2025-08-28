@@ -7,12 +7,13 @@ import { coolifyProject } from "./resources/project.js";
 import { coolifyService } from "./resources/service.js";
 
 coolifyProviderBuilder.serve({
+  name: "coolify",
   datasources: {
-    coolify_server: coolifyServerDataSource,
-    coolify_servers: coolifyServersDataSource,
+    server: coolifyServerDataSource,
+    servers: coolifyServersDataSource,
   },
   resources: {
-    coolify_project: coolifyProject,
-    coolify_service: coolifyService,
+    project: coolifyProject,
+    service: coolifyService,
   },
 });

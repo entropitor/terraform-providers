@@ -3,10 +3,11 @@ import { atprotoIdentityDataSource } from "./datasources/data_identity.js";
 import { atprotoRecordResource } from "./resources/record.js";
 
 atprotoProviderBuilder.serve({
+  name: "atproto",
   datasources: {
-    atproto_identity: atprotoIdentityDataSource,
+    identity: atprotoIdentityDataSource,
   },
   resources: {
-    atproto_record: atprotoRecordResource,
+    record: atprotoRecordResource,
   },
 });

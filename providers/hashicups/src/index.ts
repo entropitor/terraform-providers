@@ -4,11 +4,12 @@ import { hashicupsOrderDataSource } from "./datasources/order.js";
 import { hashicupsOrder } from "./resources/hashicupsOrder.js";
 
 hashicupsProviderBuilder.serve({
+  name: "hashicups",
   datasources: {
-    hashicups_coffees: hashicupsCoffeesDataSource,
-    hashicups_order: hashicupsOrderDataSource,
+    coffees: hashicupsCoffeesDataSource,
+    order: hashicupsOrderDataSource,
   },
   resources: {
-    hashicups_order: hashicupsOrder,
+    order: hashicupsOrder,
   },
 });

@@ -44,7 +44,6 @@ const parseDidOrHandle = (didOrHandle: DidOrHandle) => {
 };
 
 export const atprotoProviderBuilder = providerBuilder({
-  name: "atproto",
   schema: schema({
     handle: tf.required.custom(
       transform(attributeType.string, (s) => s as DidOrHandle),

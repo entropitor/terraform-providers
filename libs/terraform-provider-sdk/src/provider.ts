@@ -28,11 +28,7 @@ type ConfigureResponse<TInternalState> = {
   $state: TInternalState;
 };
 
-export type IProvider<
-  TProviderSchema extends Schema,
-  TInternalState,
-  TName extends string,
-> = {
+export type IProvider<TProviderSchema extends Schema, TInternalState> = {
   configure: (
     req: NoInfer<ConfigureRequest<TProviderSchema>>,
   ) => Effect.Effect<
@@ -40,7 +36,6 @@ export type IProvider<
     DiagnosticError,
     Diagnostics
   >;
-  name: TName;
   schema: TProviderSchema;
   validate?: (
     req: NoInfer<ValidateRequest<TProviderSchema>>,
@@ -56,14 +51,8 @@ export type ProviderForResources<TState> = {
   state: TState;
 };
 
-class ProviderBuilder<
-  TProviderSchema extends Schema,
-  TInternalState,
-  TName extends string,
-> {
-  constructor(
-    readonly provider: IProvider<TProviderSchema, TInternalState, TName>,
-  ) {}
+class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
+  constructor(readonly provider: IProvider<TProviderSchema, TInternalState>) {}
 
   resource<TResourceSchema extends Schema>(
     resource: IResource<TResourceSchema, NoInfer<TInternalState>>,
@@ -77,6 +66,7 @@ class ProviderBuilder<
   }
 
   serve(args: {
+    name: string;
     resources: Record<string, IResource<any, NoInfer<TInternalState>>>;
     datasources: Record<string, IDataSource<any, NoInfer<TInternalState>>>;
   }): void {
@@ -92,15 +82,17 @@ class ProviderBuilder<
       providerInstanceId,
     };
 
+    const providerPrefix = `${args.name}_`;
+
     const datasources: Record<string, DataSource> = Object.fromEntries(
       Object.entries(args.datasources).map(([name, datasourceInput]) => [
-        name,
+        providerPrefix + name,
         createDataSource(providerInput, datasourceInput),
       ]),
     );
     const resources: Record<string, Resource> = Object.fromEntries(
       Object.entries(args.resources).map(([name, resourceInput]) => [
-        name,
+        providerPrefix + name,
         createResource(providerInput, resourceInput),
       ]),
     );
@@ -217,12 +209,8 @@ class ProviderBuilder<
   }
 }
 
-export const providerBuilder = <
-  TProviderSchema extends Schema,
-  TInternalState,
-  TName extends string,
->(
-  args: IProvider<TProviderSchema, TInternalState, TName>,
+export const providerBuilder = <TProviderSchema extends Schema, TInternalState>(
+  args: IProvider<TProviderSchema, TInternalState>,
 ) => {
   return new ProviderBuilder(args);
 };
