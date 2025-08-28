@@ -30,11 +30,24 @@ const messageFrom = (error: unknown) => {
   return "Unknown error occurred";
 };
 
+type Did = `did:plc:${string}` | `did:web:${string}`;
+type Handle = `${string}.${string}`;
+type DidOrHandle = Did | Handle;
+const isDid = (didOrHandle: DidOrHandle): didOrHandle is Did => {
+  return didOrHandle.startsWith("did:");
+};
+const parseDidOrHandle = (didOrHandle: DidOrHandle) => {
+  if (isDid(didOrHandle)) {
+    return { type: "did", did: didOrHandle } as const;
+  }
+  return { type: "handle", handle: didOrHandle } as const;
+};
+
 export const atprotoProviderBuilder = providerBuilder({
   name: "atproto",
   schema: schema({
     handle: tf.required.custom(
-      transform(attributeType.string, (s) => s as `${string}.${string}`),
+      transform(attributeType.string, (s) => s as DidOrHandle),
     ),
     app_password: tf.required.string(),
   }),
@@ -55,15 +68,20 @@ export const atprotoProviderBuilder = providerBuilder({
         },
       });
 
-      const did = yield* Effect.tryPromise({
-        try: (signal) => handleResolver.resolve(config.handle, { signal }),
-        catch: (error) =>
-          DiagnosticError.from(
-            diagnosticsPath.for("handle"),
-            "Invalid handle",
-            messageFrom(error),
-          ),
-      });
+      const didOrHandle = parseDidOrHandle(config.handle);
+      const did =
+        didOrHandle.type === "did" ?
+          didOrHandle.did
+        : yield* Effect.tryPromise({
+            try: (signal) =>
+              handleResolver.resolve(didOrHandle.handle, { signal }),
+            catch: (error) =>
+              DiagnosticError.from(
+                diagnosticsPath.for("handle"),
+                "Invalid handle",
+                messageFrom(error),
+              ),
+          });
 
       const didDocument = yield* Effect.tryPromise({
         try: (signal) => didResolver.resolve(did, { signal }),
