@@ -35,3 +35,11 @@ resource "atproto_record" "status" {
     status    = "🌐"
   }
 }
+
+resource "atproto_statusphere_status" "status" {
+  rkey = "second"
+
+  createdAt = "2025-09-15T22:43:47.483Z"
+  status    = "🌍"
+  # status    = "🌐"
+}
