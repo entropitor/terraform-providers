@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   attributeType,
   schema,
@@ -5,19 +6,24 @@ import {
   transform,
   Unknown,
 } from "@entropitor/terraform-provider-sdk";
-import { DiagnosticError } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
+import {
+  DiagnosticError,
+  Diagnostics,
+} from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { Effect } from "effect";
 
 import { atprotoProviderBuilder } from "../builder.js";
+
+// TODO: we should make this return an effect that can give DiagnosticError
+const parseCollectionName = (s: string): `${string}.${string}.${string}` => {
+  return s as `${string}.${string}.${string}`;
+};
 
 export const atprotoRecordResource = atprotoProviderBuilder.resource({
   schema: schema({
     rkey: tf.computedIfNotGiven.string(),
     collection: tf.required.custom(
-      transform(
-        attributeType.string,
-        (s) => s as `${string}.${string}.${string}`,
-      ),
+      transform(attributeType.string, parseCollectionName),
     ),
     record: tf.required.any(),
     cid: tf.alwaysComputed.string(),
@@ -44,8 +50,49 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
       return {
         currentState: {
           ...savedState,
-          cid: record.cid,
+          cid: record.cid!,
           record: record.value,
+        },
+      };
+    });
+  },
+
+  import({ resourceId }, client) {
+    return Effect.gen(function* () {
+      const [collectionRaw, rkey] = resourceId.split("/");
+      if (collectionRaw == null || rkey == null) {
+        return yield* Diagnostics.crit(
+          [],
+          `The import id should be in the format [collection]/[rkey] instead of ${resourceId}`,
+        );
+      }
+      const collection = parseCollectionName(collectionRaw);
+
+      const response = yield* Effect.promise(() =>
+        client.rpc.get("com.atproto.repo.getRecord", {
+          params: {
+            repo: client.session.did,
+            collection,
+            rkey,
+          },
+        }),
+      );
+      if (!response.ok) {
+        return yield* Effect.fail(
+          DiagnosticError.from(
+            [],
+            "Failed to import record",
+            response.data.error,
+          ),
+        );
+      }
+
+      return {
+        currentState: {
+          rkey,
+          collection,
+          record: response.data.value,
+          cid: response.data.cid!,
         },
       };
     });
