@@ -8,6 +8,7 @@ import { Effect } from "effect";
 
 import { coolifyProviderBuilder } from "../builder.js";
 import { effectify } from "../effectify.js";
+import { nullToUndefined } from "../nullToUndefined.js";
 
 export const coolifyService = coolifyProviderBuilder.resource({
   schema: schema({
@@ -53,7 +54,7 @@ export const coolifyService = coolifyProviderBuilder.resource({
       const service = yield* effectify(() =>
         client.POST("/services", {
           body: {
-            ...config,
+            ...nullToUndefined(config),
             type: config.type as any,
             uuid: undefined,
           },
@@ -65,7 +66,7 @@ export const coolifyService = coolifyProviderBuilder.resource({
       );
       return {
         newState: {
-          ...config,
+          ...nullToUndefined(config),
           ...service,
         },
       };

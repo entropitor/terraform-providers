@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   attributeType,
+  requiresReplacementOnChange,
   schema,
   tf,
   transform,
@@ -21,7 +22,7 @@ const parseCollectionName = (s: string): `${string}.${string}.${string}` => {
 
 export const atprotoRecordResource = atprotoProviderBuilder.resource({
   schema: schema({
-    rkey: tf.computedIfNotGiven.string(),
+    rkey: tf.computedIfNotGiven.string().pipe(requiresReplacementOnChange()),
     collection: tf.required.custom(
       transform(attributeType.string, parseCollectionName),
     ),
@@ -42,6 +43,9 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
       );
 
       if (!response.ok) {
+        if (response.status === 400) {
+          return { currentState: null };
+        }
         return yield* Effect.fail(
           DiagnosticError.from([], "Failed to read", response.data.error),
         );
@@ -120,7 +124,7 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
             collection: config.collection,
             record: config.record,
             repo: client.session.did,
-            rkey: config.rkey,
+            rkey: config.rkey ?? undefined,
           },
         }),
       );
@@ -133,10 +137,11 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
           ),
         );
       }
+      const createdRkey = response.data.uri.split("/").pop()!;
       return {
         newState: {
           record: config.record,
-          rkey: config.rkey,
+          rkey: createdRkey,
           collection: config.collection,
           cid: response.data.cid,
         },
@@ -167,7 +172,7 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
       return {
         newState: {
           record: config.record,
-          rkey: config.rkey,
+          rkey: config.rkey ?? prior.rkey,
           collection: config.collection,
           cid: response.data.cid,
         },

@@ -416,8 +416,8 @@ export type ConfigForNormalAttributes<TSchema extends Schema> = {
   : TField]: TSchema["attributes"][TField] extends (
     infer TAttribute extends Attribute
   ) ?
-    TAttribute["presence"] extends "optional" ?
-      ConfigForAttribute<TAttribute> | undefined
+    TAttribute["presence"] extends "computed_if_not_given" | "optional" ?
+      ConfigForAttribute<TAttribute> | null
     : ConfigForAttribute<TAttribute>
   : never;
 };

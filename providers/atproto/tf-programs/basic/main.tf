@@ -28,7 +28,6 @@ output "did" {
 }
 
 resource "atproto_record" "status" {
-  rkey       = "first"
   collection = "xyz.statusphere.status"
   record = {
     "$type"   = "xyz.statusphere.status"

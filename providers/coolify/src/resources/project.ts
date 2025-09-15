@@ -3,6 +3,7 @@ import { Effect } from "effect";
 
 import { coolifyProviderBuilder } from "../builder.js";
 import { effectify } from "../effectify.js";
+import { nullToUndefined } from "../nullToUndefined.js";
 
 export const coolifyProject = coolifyProviderBuilder.resource({
   schema: schema({
@@ -34,7 +35,7 @@ export const coolifyProject = coolifyProviderBuilder.resource({
         client.POST("/projects", {
           body: {
             name: config.name,
-            description: config.description,
+            description: config.description ?? undefined,
           },
         }),
       ).pipe(
@@ -44,7 +45,7 @@ export const coolifyProject = coolifyProviderBuilder.resource({
       );
       return {
         newState: {
-          ...config,
+          ...nullToUndefined(config),
           ...project,
         },
       };
@@ -58,7 +59,7 @@ export const coolifyProject = coolifyProviderBuilder.resource({
           params: { path: { uuid: priorState.uuid } },
           body: {
             name: config.name,
-            description: config.description,
+            description: config.description ?? undefined,
           },
         }),
       ).pipe(
