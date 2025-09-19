@@ -7,6 +7,7 @@ import type { ConfigFor, Schema, StateFor } from "./attributes.js";
 import { decodeWithSchema, encodeWithSchema } from "./codec.js";
 import type { DiagnosticError, Diagnostics } from "./diagnostics.js";
 import { withDiagnostics } from "./diagnostics.js";
+import type { ReadResource_ResponseSchema } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 import {
   type ApplyResourceChange_Request,
   Diagnostic_Severity,
@@ -69,6 +70,10 @@ type UpdateResponse<TResourceSchema extends Schema> = {
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type DeleteResponse<_TResourceSchema extends Schema> = {};
 
+export class RemoteResourceNotFound {
+  readonly _tag = "RemoteResourceNotFound";
+}
+
 export type IResource<TResourceSchema extends Schema, TProviderState> = {
   create: (
     req: NoInfer<CreateRequest<TResourceSchema>>,
@@ -108,7 +113,7 @@ export type IResource<TResourceSchema extends Schema, TProviderState> = {
     providerState: TProviderState,
   ) => Effect.Effect<
     NoInfer<ReadResponse<TResourceSchema>>,
-    DiagnosticError,
+    DiagnosticError | RemoteResourceNotFound,
     Diagnostics
   >;
 
@@ -296,8 +301,16 @@ export const createResource = <TResourceSchema extends Schema, TState>(
           newState: { msgpack: encodeWithSchema(null, resource.schema) },
         };
       }
-      return await Effect.runPromise(
+      return await Effect.runPromise<
+        MessageInitShape<typeof ReadResource_ResponseSchema>,
+        never
+      >(
         resource.read({ savedState }, provider.state).pipe(
+          Effect.catchTag("RemoteResourceNotFound", () =>
+            Effect.succeed({
+              currentState: null,
+            }),
+          ),
           Effect.map((response) => ({
             newState: {
               msgpack: encodeWithSchema(response.currentState, resource.schema),

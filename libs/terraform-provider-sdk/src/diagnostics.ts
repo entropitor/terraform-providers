@@ -103,16 +103,17 @@ export const withDiagnostics =
     effect: Effect.Effect<A, DiagnosticError | E, R>,
   ): Effect.Effect<
     (A | {}) & { diagnostics: DiagnosticMessage[] },
-    E,
+    Exclude<E, DiagnosticError>,
     Exclude<R, Diagnostics>
   > =>
+    // @ts-expect-error: TypeScript can't seem to infer that we are removing DiagnosticError from E
     pipe(
       Effect.Do,
       Effect.bind("result", () =>
         effect.pipe(
-          Effect.catchTag("DiagnosticError", (error) =>
+          // @ts-expect-error: We don't know if there is another error with the same tag or not
+          Effect.catchTag("DiagnosticError", (error: DiagnosticError) =>
             Effect.gen(function* () {
-              // @ts-expect-error: We don't know if there is another error with the same tag or not
               yield* Diagnostics.add(error.diagnostic);
               return {};
             }),
