@@ -19,9 +19,9 @@ const parseCollectionName = (s: string): `${string}.${string}.${string}` => {
 export const atprotoRecordResource = atprotoProviderBuilder.resource({
   schema: schema({
     rkey: tf.computedIfNotGiven.string().pipe(requiresReplacementOnChange()),
-    collection: tf.required.custom(
-      transform(attributeType.string, parseCollectionName),
-    ),
+    collection: tf.required
+      .custom(transform(attributeType.string, parseCollectionName))
+      .pipe(requiresReplacementOnChange()),
     record: tf.required.any(),
     cid: tf.alwaysComputed.string(),
   }),

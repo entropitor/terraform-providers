@@ -17,7 +17,7 @@ type SchemaAttributeMessage = MessageInitShape<typeof Schema_AttributeSchema>;
 type AttributeType =
   | { type: "any" }
   | { type: "boolean" }
-  | { type: "custom"; _T: any; originalType: AttributeType }
+  | { type: "custom"; custom: IAttributeType<any> }
   | { type: "list"; fields: Record<string, Attribute> }
   | { type: "number" }
   | { type: "object"; fields: Record<string, Attribute> }
@@ -68,14 +68,9 @@ class CustomAttribute<
   TPresence extends Presence,
 > extends BaseAttribute {
   readonly type = "custom";
-  readonly _T!: TType["_T"];
-
-  get originalType() {
-    return this.customType.originialType;
-  }
 
   constructor(
-    public readonly customType: TType,
+    public readonly custom: TType,
     public readonly presence: TPresence,
   ) {
     super();
@@ -166,7 +161,7 @@ const typeFrom = (
     case "boolean":
       return { type: Buffer.from('"bool"') };
     case "custom":
-      return typeFrom(attr.originalType);
+      return typeFrom(attr.custom.originialType);
     case "list":
       return {
         nestedType: {
@@ -371,7 +366,7 @@ export const requiresReplacementOnChange =
 
 type ConfigForAttribute<TAttribute extends AttributeType> =
   ForceTypescriptComputation<
-    TAttribute extends { type: "custom" } ? TAttribute["_T"]
+    TAttribute extends { type: "custom" } ? TAttribute["custom"]["_T"]
     : TAttribute extends { type: "string" } ? string
     : TAttribute extends { type: "number" } ? number
     : TAttribute extends { type: "boolean" } ? boolean
