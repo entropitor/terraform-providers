@@ -23,6 +23,8 @@ import {
 } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { Effect } from "effect";
 
+import { buildRecordClient } from "./buildRecordClient.js";
+
 const messageFrom = (error: unknown) => {
   if (error instanceof Error) {
     return error.message;
@@ -123,7 +125,13 @@ export const atprotoProviderBuilder = providerBuilder({
           ),
       });
 
-      return { $state: { rpc, session } };
+      return {
+        $state: {
+          rpc,
+          session,
+          records: buildRecordClient({ rpc, repo: session.did }),
+        },
+      };
     });
   },
 });

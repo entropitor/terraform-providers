@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   attributeType,
   requiresReplacementOnChange,
@@ -7,10 +6,7 @@ import {
   transform,
   Unknown,
 } from "@entropitor/terraform-provider-sdk";
-import {
-  DiagnosticError,
-  Diagnostics,
-} from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
+import { Diagnostics } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { Effect } from "effect";
 
 import { atprotoProviderBuilder } from "../builder.js";
@@ -32,30 +28,16 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
 
   read({ savedState }, client) {
     return Effect.gen(function* () {
-      const response = yield* Effect.promise(() =>
-        client.rpc.get("com.atproto.repo.getRecord", {
-          params: {
-            repo: client.session.did,
-            collection: savedState.collection,
-            rkey: savedState.rkey,
-          },
-        }),
-      );
+      const { cid, record } = yield* client.records.get({
+        collection: savedState.collection,
+        rkey: savedState.rkey,
+      });
 
-      if (!response.ok) {
-        if (response.status === 400) {
-          return { currentState: null };
-        }
-        return yield* Effect.fail(
-          DiagnosticError.from([], "Failed to read", response.data.error),
-        );
-      }
-      const record = response.data;
       return {
         currentState: {
           ...savedState,
-          cid: record.cid!,
-          record: record.value,
+          cid,
+          record,
         },
       };
     });
@@ -72,31 +54,23 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
       }
       const collection = parseCollectionName(collectionRaw);
 
-      const response = yield* Effect.promise(() =>
-        client.rpc.get("com.atproto.repo.getRecord", {
-          params: {
-            repo: client.session.did,
-            collection,
-            rkey,
-          },
-        }),
-      );
-      if (!response.ok) {
-        return yield* Effect.fail(
-          DiagnosticError.from(
-            [],
-            "Failed to import record",
-            response.data.error,
+      const { cid, record } = yield* client.records
+        .get({
+          collection,
+          rkey,
+        })
+        .pipe(
+          Effect.catchTag("RemoteResourceNotFound", () =>
+            Diagnostics.crit([], "Record not found"),
           ),
         );
-      }
 
       return {
         currentState: {
           rkey,
           collection,
-          record: response.data.value,
-          cid: response.data.cid!,
+          record,
+          cid,
         },
       };
     });
@@ -118,76 +92,45 @@ export const atprotoRecordResource = atprotoProviderBuilder.resource({
 
   create({ config }, client) {
     return Effect.gen(function* () {
-      const response = yield* Effect.promise(() =>
-        client.rpc.post("com.atproto.repo.createRecord", {
-          input: {
-            collection: config.collection,
-            record: config.record,
-            repo: client.session.did,
-            rkey: config.rkey ?? undefined,
-          },
-        }),
-      );
-      if (!response.ok) {
-        return yield* Effect.fail(
-          DiagnosticError.from(
-            [],
-            "Failed to create record",
-            response.data.error,
-          ),
-        );
-      }
-      const createdRkey = response.data.uri.split("/").pop()!;
+      const { rkey, cid } = yield* client.records.create({
+        collection: config.collection,
+        rkey: config.rkey,
+        record: config.record,
+      });
       return {
         newState: {
           record: config.record,
-          rkey: createdRkey,
+          rkey,
           collection: config.collection,
-          cid: response.data.cid,
+          cid,
         },
       };
     });
   },
+
   update({ config, priorState: prior }, client) {
     return Effect.gen(function* () {
-      const response = yield* Effect.promise(() =>
-        client.rpc.post("com.atproto.repo.putRecord", {
-          input: {
-            repo: client.session.did,
-            collection: prior.collection,
-            rkey: prior.rkey,
-            record: config.record,
-          },
-        }),
-      );
-      if (!response.ok) {
-        return yield* Effect.fail(
-          DiagnosticError.from(
-            [],
-            "Failed to update record",
-            response.data.error,
-          ),
-        );
-      }
+      const { cid } = yield* client.records.update({
+        collection: prior.collection,
+        rkey: prior.rkey,
+        record: config.record,
+      });
+
       return {
         newState: {
           record: config.record,
-          rkey: config.rkey ?? prior.rkey,
-          collection: config.collection,
-          cid: response.data.cid,
+          rkey: prior.rkey,
+          collection: prior.collection,
+          cid,
         },
       };
     });
   },
+
   delete({ priorState: prior }, client) {
-    return Effect.promise(async () => {
-      await client.rpc.post("com.atproto.repo.deleteRecord", {
-        input: {
-          repo: client.session.did,
-          collection: prior.collection,
-          rkey: prior.rkey,
-        },
-      });
+    return client.records.delete({
+      collection: prior.collection,
+      rkey: prior.rkey,
     });
   },
 });
