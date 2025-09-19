@@ -47,7 +47,6 @@ export type IProvider<TProviderSchema extends Schema, TInternalState> = {
 };
 
 export type ProviderForResources<TState> = {
-  providerInstanceId: number;
   state: TState;
 };
 
@@ -70,7 +69,6 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
     resources: Record<string, IResource<any, NoInfer<TInternalState>>>;
     datasources: Record<string, IDataSource<any, NoInfer<TInternalState>>>;
   }): void {
-    const providerInstanceId = Math.floor(Math.random() * 1000);
     type ProviderConfig = ConfigFor<TProviderSchema>;
 
     let internalState: TInternalState = undefined as any;
@@ -79,7 +77,6 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
       get state() {
         return internalState;
       },
-      providerInstanceId,
     };
 
     const providerPrefix = `${args.name}_`;
@@ -101,7 +98,6 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
 
     serveProvider({
       getProviderSchema() {
-        console.error("[ERROR] getProviderSchema", providerInstanceId);
         return {
           provider: toTerraformSchema(provider.schema),
           resourceSchemas: Object.fromEntries(
@@ -120,7 +116,6 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
       },
 
       async validateProviderConfig(req, ctx) {
-        console.error("[ERROR] validateProviderConfig", providerInstanceId);
         const config: ProviderConfig = decodeWithSchema(
           req.config!.msgpack,
           provider.schema,
@@ -147,22 +142,12 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
         );
       },
       async configureProvider(req, ctx) {
-        console.error("[ERROR] configureProvider", providerInstanceId);
-
         const config: ProviderConfig = decodeWithSchema(
           req.config!.msgpack,
           provider.schema,
         );
         const result = await Effect.runPromise(
-          provider.configure({ config }).pipe(
-            withDiagnostics(),
-            Effect.tapDefect((defect) =>
-              // eslint-disable-next-line require-yield
-              Effect.gen(function* () {
-                console.error("[ERROR] configureProvider defect", defect);
-              }),
-            ),
-          ),
+          provider.configure({ config }).pipe(withDiagnostics()),
           { signal: ctx.signal },
         );
         // @ts-expect-error: We don't know the type of result
@@ -200,7 +185,6 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
         return resource!.importResource(req, ctx);
       },
       upgradeResourceState(req) {
-        console.error("[ERROR] upgradeResourceState", providerInstanceId);
         return {
           upgradedState: { json: req.rawState!.json },
         };

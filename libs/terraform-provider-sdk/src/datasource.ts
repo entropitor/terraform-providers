@@ -62,11 +62,6 @@ export const createDataSource = <TDataSourceSchema extends Schema, TState>(
       req: ValidateDataResourceConfig_Request,
       ctx: HandlerContext,
     ) {
-      console.error(
-        "[ERROR] validateDataResourceConfig",
-        provider.providerInstanceId,
-      );
-
       const config: DataSourceConfig = decodeWithSchema(
         req.config!.msgpack,
         datasource.schema,
@@ -87,7 +82,6 @@ export const createDataSource = <TDataSourceSchema extends Schema, TState>(
       );
     },
     async readDataSource(req: ReadDataSource_Request, ctx: HandlerContext) {
-      console.error("[ERROR] readDataSource", provider.providerInstanceId);
       const config: DataSourceConfig = decodeWithSchema(
         req.config!.msgpack,
         datasource.schema,

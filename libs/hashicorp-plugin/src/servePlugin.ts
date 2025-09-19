@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import http2 from "node:http2";
 
-import type { ConnectRouter } from "@connectrpc/connect";
+import type { ConnectRouter, Interceptor } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import forge from "node-forge";
 
@@ -22,6 +22,7 @@ export type HashicorpPlugin = {
   apiProtocolVersion: number;
   pluginProtocolVersion?: 1;
   setupRouter: (router: ConnectRouter) => void;
+  interceptors?: Interceptor[];
 };
 
 export const servePlugin = (plugin: HashicorpPlugin) => {
@@ -57,8 +58,10 @@ export const servePlugin = (plugin: HashicorpPlugin) => {
 
     plugin.setupRouter(router);
   };
+
   const requestHandler = connectNodeAdapter({
     routes,
+    interceptors: plugin.interceptors,
     connect: false,
     grpcWeb: false,
   });

@@ -148,10 +148,6 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       req: ValidateResourceConfig_Request,
       ctx: HandlerContext,
     ) {
-      console.error(
-        "[ERROR] validateResourceConfig",
-        provider.providerInstanceId,
-      );
       const config: ResourceConfig = decodeWithSchema(
         req.config!.msgpack,
         resource.schema,
@@ -174,8 +170,6 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       req: PlanResourceChange_Request,
       ctx: HandlerContext,
     ): Promise<MessageInitShape<typeof PlanResourceChange_ResponseSchema>> {
-      console.error("[ERROR] planResourceChange", provider.providerInstanceId);
-
       const [response, requiresReplace] = await Effect.runPromise(
         Effect.gen(function* () {
           const priorState: ResourceState = decodeWithSchema(
@@ -243,7 +237,6 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       req: ApplyResourceChange_Request,
       ctx: HandlerContext,
     ) {
-      console.error("[ERROR] applyResourceChange", provider.providerInstanceId);
       const config: null | ResourceConfig = decodeWithSchema(
         req.config!.msgpack,
         resource.schema,
@@ -291,7 +284,6 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       );
     },
     async readResource(req: ReadResource_Request, ctx: HandlerContext) {
-      console.error("[ERROR] readResource", provider.providerInstanceId);
       const savedState: null | ResourceState = decodeWithSchema(
         req.currentState!.msgpack,
         resource.schema,
@@ -325,8 +317,6 @@ export const createResource = <TResourceSchema extends Schema, TState>(
       req: ImportResourceState_Request,
       ctx: HandlerContext,
     ): Promise<MessageInitShape<typeof ImportResourceState_ResponseSchema>> {
-      console.error("[ERROR] importResourceState", provider.providerInstanceId);
-
       if (resource.import == null) {
         return {
           diagnostics: [

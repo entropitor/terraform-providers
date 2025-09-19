@@ -6,6 +6,8 @@ import { Provider } from "./gen/tfplugin6/tfplugin6.7_pb.js";
 type BuiltProvider = Partial<ServiceImpl<typeof Provider>>;
 
 export const serveProvider = (provider: BuiltProvider) => {
+  const providerInstanceId = Math.floor(Math.random() * 1000);
+
   servePlugin({
     setupRouter: (router: ConnectRouter) => router.service(Provider, provider),
     magicCookie: {
@@ -14,5 +16,21 @@ export const serveProvider = (provider: BuiltProvider) => {
     },
     apiProtocolVersion: 6,
     mtls: true,
+    interceptors: [
+      (next) => async (req) => {
+        console.error(
+          `[INFO] Request to ${req.method.name} ${providerInstanceId}`,
+        );
+        try {
+          return await next(req);
+        } catch (error) {
+          console.error(
+            `[ERROR] Unhandled error during ${req.method.name}`,
+            error,
+          );
+          throw error;
+        }
+      },
+    ],
   });
 };
