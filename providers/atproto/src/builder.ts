@@ -10,12 +10,10 @@ import {
 } from "@atcute/identity-resolver";
 import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
 import {
-  attributeType,
   diagnosticsPath,
   providerBuilder,
   schema,
   tf,
-  transform,
 } from "@entropitor/terraform-provider-sdk";
 import {
   DiagnosticError,
@@ -24,6 +22,7 @@ import {
 import { Effect } from "effect";
 
 import { buildRecordClient } from "./buildRecordClient.js";
+import { type Did, type DidOrHandle, didOrHandleAttribute } from "./utils.js";
 
 const messageFrom = (error: unknown) => {
   if (error instanceof Error) {
@@ -32,9 +31,6 @@ const messageFrom = (error: unknown) => {
   return "Unknown error occurred";
 };
 
-type Did = `did:plc:${string}` | `did:web:${string}`;
-type Handle = `${string}.${string}`;
-type DidOrHandle = Did | Handle;
 const isDid = (didOrHandle: DidOrHandle): didOrHandle is Did => {
   return didOrHandle.startsWith("did:");
 };
@@ -47,9 +43,7 @@ const parseDidOrHandle = (didOrHandle: DidOrHandle) => {
 
 export const atprotoProviderBuilder = providerBuilder({
   schema: schema({
-    handle: tf.required.custom(
-      transform(attributeType.string, (s) => s as DidOrHandle),
-    ),
+    handle: tf.required.custom(didOrHandleAttribute),
     app_password: tf.required.string(),
   }),
 
@@ -130,6 +124,7 @@ export const atprotoProviderBuilder = providerBuilder({
           rpc,
           session,
           records: buildRecordClient({ rpc, repo: session.did }),
+          handleResolver,
         },
       };
     });

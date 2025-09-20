@@ -39,7 +39,12 @@ resource "atproto_record" "status" {
 resource "atproto_statusphere_status" "status" {
   rkey = "second"
 
-  createdAt = "2025-09-15T22:43:47.483Z"
-  status    = "🌍"
-  # status    = "🌐"
+  status = "🌍"
+}
+
+data "atproto_account" "barack_obama" {
+  handle = "barackobama.bsky.social"
+}
+resource "atproto_tangled_follow" "barack_obama" {
+  subject = data.atproto_account.barack_obama.did
 }

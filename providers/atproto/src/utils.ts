@@ -1,9 +1,23 @@
 import type { ResourceUri } from "@atcute/lexicons";
 import { attributeType, transform } from "@entropitor/terraform-provider-sdk";
 
+export type Did = `did:plc:${string}` | `did:web:${string}`;
+export type Handle = `${string}.${string}`;
+export type DidOrHandle = Did | Handle;
+
 export const didStringAttribute = transform(
   attributeType.string,
   (s) => s as `did:${string}:${string}`,
+);
+
+export const didOrHandleAttribute = transform(
+  attributeType.string,
+  (s) => s as DidOrHandle,
+);
+export const didAttribute = transform(attributeType.string, (s) => s as Did);
+export const handleAttribute = transform(
+  attributeType.string,
+  (s) => s as Handle,
 );
 
 export const urlAttribute = transform(
