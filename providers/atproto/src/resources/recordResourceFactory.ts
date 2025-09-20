@@ -22,6 +22,7 @@ export const createRecordResource = <
 >(recordDefinition: {
   schema: TFields;
   collection: TCollection;
+  rkey?: string;
 
   recordToState: (
     record: RecordFor<TCollection>,
@@ -120,7 +121,7 @@ export const createRecordResource = <
         const { rkey, cid, uri } = yield* client.records.create({
           collection: recordDefinition.collection,
           // @ts-expect-error TypeScript doesn't know that schema doesn't override rkey for some reason
-          rkey: config.rkey,
+          rkey: config.rkey ?? recordDefinition.rkey,
           record,
         });
 
