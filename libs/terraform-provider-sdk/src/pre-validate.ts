@@ -138,6 +138,12 @@ const preValidateAttribute = (
       case "any":
         return;
 
+      case "array":
+        if (!Array.isArray(value)) {
+          return yield* Diagnostics.error(path, "Attribute has the wrong type");
+        }
+        return;
+
       case "boolean":
       case "number":
       case "string":

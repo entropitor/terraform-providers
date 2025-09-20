@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
+import assert from "assert";
+
 import type { MessageInitShape } from "@bufbuild/protobuf";
 import { type Pipeable, pipeArguments } from "effect/Pipeable";
 
@@ -16,6 +18,7 @@ type SchemaAttributeMessage = MessageInitShape<typeof Schema_AttributeSchema>;
 
 type AttributeType =
   | { type: "any" }
+  | { type: "array"; itemType: IAttributeType<any> }
   | { type: "boolean" }
   | { type: "custom"; custom: IAttributeType<any> }
   | { type: "list"; fields: Record<string, Attribute> }
@@ -83,6 +86,20 @@ class PrimitiveAttribute<
 > extends BaseAttribute {
   constructor(
     public readonly type: TType,
+    public readonly presence: TPresence,
+  ) {
+    super();
+  }
+}
+
+class ArrayAttribute<
+  TItemType extends IAttributeType<any>,
+  TPresence extends Presence,
+> extends BaseAttribute {
+  readonly type = "array";
+
+  constructor(
+    public readonly itemType: TItemType,
     public readonly presence: TPresence,
   ) {
     super();
@@ -158,6 +175,11 @@ const typeFrom = (
   switch (attr.type) {
     case "any":
       return { type: Buffer.from('"dynamic"') };
+    case "array": {
+      const itemType = typeFrom(attr.itemType.originialType);
+      assert(itemType.type != null, "array item type must be a primitive");
+      return { type: Buffer.from(`["list",${itemType.type.toString()}]`) };
+    }
     case "boolean":
       return { type: Buffer.from('"bool"') };
     case "custom":
@@ -256,7 +278,7 @@ class SchemaInternal<TFields extends Fields> implements Pipeable {
   }
 }
 
-type IAttributeType<T> = {
+export type IAttributeType<T> = {
   _T: T;
   readonly originialType: AttributeType;
 };
@@ -293,6 +315,8 @@ export const transform = <TFrom, TResult>(
 export const tf = {
   optional: {
     boolean: () => new PrimitiveAttribute("boolean", "optional"),
+    array: <T>(itemType: IAttributeType<T>) =>
+      new ArrayAttribute(itemType, "optional"),
     custom: <T>(customType: IAttributeType<T>) =>
       new CustomAttribute(customType, "optional"),
     string: () => new PrimitiveAttribute("string", "optional"),
@@ -375,6 +399,7 @@ type ConfigForAttribute<TAttribute extends AttributeType> =
     : TAttribute extends { type: "number" } ? number
     : TAttribute extends { type: "boolean" } ? boolean
     : TAttribute extends { type: "any" } ? unknown
+    : TAttribute extends { type: "array" } ? Array<TAttribute["itemType"]["_T"]>
     : TAttribute extends { type: "object" } ?
       {
         [TField in keyof TAttribute["fields"] as TAttribute["fields"][TField]["presence"] extends (

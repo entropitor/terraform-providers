@@ -103,6 +103,7 @@ const preprocessAttribute = (
 
     switch (attribute.type) {
       case "any":
+      case "array":
       case "boolean":
       case "custom":
       case "number":

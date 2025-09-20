@@ -85,6 +85,7 @@ const encodeAttribute = (value: any, attribute: Attribute): unknown => {
       const type = getTypeOf(value);
       return [Buffer.from(JSON.stringify(type)), value];
     }
+    case "array":
     case "boolean":
     case "custom":
     case "number":
@@ -127,6 +128,7 @@ const postDecodeAttribute = (value: any, attribute: Attribute): unknown => {
     case "any":
       // First entry in the tuple is the type
       return value[1];
+    case "array":
     case "boolean":
     case "custom":
     case "number":
