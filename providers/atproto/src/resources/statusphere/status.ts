@@ -10,6 +10,15 @@ import { Effect } from "effect";
 import { atprotoProviderBuilder } from "../../builder.js";
 
 const collection = "xyz.statusphere.status";
+declare module "@atcute/lexicons/ambient" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+  interface Records {
+    ["xyz.statusphere.status"]: {
+      status: string;
+      createdAt: string;
+    };
+  }
+}
 
 export const atprotoStatusphereStatusResource = atprotoProviderBuilder.resource(
   {
@@ -56,8 +65,8 @@ export const atprotoStatusphereStatusResource = atprotoProviderBuilder.resource(
             rkey,
             collection,
             cid,
-            status: record.status as string,
-            createdAt: record.createdAt as string,
+            status: record.status,
+            createdAt: record.createdAt,
           },
         };
       });
@@ -82,7 +91,7 @@ export const atprotoStatusphereStatusResource = atprotoProviderBuilder.resource(
         const record = {
           status: config.status,
           createdAt: config.createdAt ?? new Date().toISOString(),
-        };
+        } as const;
 
         const { rkey, cid } = yield* client.records.create({
           collection,
@@ -107,7 +116,7 @@ export const atprotoStatusphereStatusResource = atprotoProviderBuilder.resource(
         const record = {
           status: config.status,
           createdAt: config.createdAt ?? prior.createdAt,
-        };
+        } as const;
 
         const { cid } = yield* client.records.update({
           collection,

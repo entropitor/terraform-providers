@@ -1,9 +1,15 @@
 import type { Client } from "@atcute/client";
+import type { Records } from "@atcute/lexicons/ambient";
 import { DiagnosticError } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { RemoteResourceNotFound } from "@entropitor/terraform-provider-sdk/src/resource.js";
 import { Effect } from "effect";
 
 export type Collection = `${string}.${string}.${string}`;
+
+type RecordFor<TCollection extends Collection> =
+  TCollection extends keyof Records ?
+    Record<string, unknown> & Records[TCollection]
+  : Record<string, unknown>;
 
 export const buildRecordClient = ({
   rpc,
@@ -12,13 +18,16 @@ export const buildRecordClient = ({
   rpc: Client;
   repo: `did:${string}:${string}`;
 }) => {
-  const getRecord = Effect.fn("getRecord")(function* ({
-    collection,
-    rkey,
-  }: {
-    collection: Collection;
+  const getRecord: <TCollection extends Collection>(args: {
+    collection: TCollection;
     rkey: string;
-  }) {
+  }) => Effect.Effect<
+    {
+      record: RecordFor<TCollection>;
+      cid: string;
+    },
+    DiagnosticError | RemoteResourceNotFound
+  > = Effect.fn("getRecord")(function* ({ collection, rkey }) {
     const response = yield* Effect.promise(() =>
       rpc.get("com.atproto.repo.getRecord", {
         params: { repo, collection, rkey },
@@ -35,20 +44,22 @@ export const buildRecordClient = ({
     }
 
     return {
-      record: response.data.value,
+      record: response.data.value as RecordFor<typeof collection>,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       cid: response.data.cid!,
     };
   });
 
-  const createRecord = Effect.fn("createRecord")(function* ({
+  const createRecord = Effect.fn("createRecord")(function* <
+    TCollection extends Collection,
+  >({
     collection,
     rkey,
     record,
   }: {
-    collection: Collection;
+    collection: TCollection;
     rkey: null | string;
-    record: Record<string, unknown>;
+    record: RecordFor<TCollection>;
   }) {
     const response = yield* Effect.promise(() =>
       rpc.post("com.atproto.repo.createRecord", {
@@ -81,14 +92,16 @@ export const buildRecordClient = ({
     };
   });
 
-  const updateRecord = Effect.fn("updateRecord")(function* ({
+  const updateRecord = Effect.fn("updateRecord")(function* <
+    TCollection extends Collection,
+  >({
     collection,
     rkey,
     record,
   }: {
-    collection: Collection;
+    collection: TCollection;
     rkey: string;
-    record: Record<string, unknown>;
+    record: RecordFor<TCollection>;
   }) {
     const response = yield* Effect.promise(() =>
       rpc.post("com.atproto.repo.putRecord", {
