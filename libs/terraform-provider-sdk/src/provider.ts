@@ -11,7 +11,7 @@ import {
   type IDataSource,
 } from "./datasource.js";
 import type { DiagnosticError } from "./diagnostics.js";
-import { type Diagnostics, withDiagnostics } from "./diagnostics.js";
+import { Diagnostics, withDiagnostics } from "./diagnostics.js";
 import { preValidateSchema } from "./pre-validate.js";
 import { createResource, type IResource, type Resource } from "./resource.js";
 import { serveProvider } from "./serve.js";
@@ -128,6 +128,20 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
 
         return await Effect.runPromise(
           Effect.gen(function* () {
+            yield* Diagnostics.warn(
+              [],
+              // This serves as the Creative Commons Attribution for the SDK, you cannot remove this warning
+              `This ${args.name} provider is built using the (experimental) TypeScript Terraform Provider SDK by Entropitor.`,
+              `
+This is the first provider SDK in any language other than Go and also the first one built outside of HashiCorp.
+
+Building this provider from scratch was such an immensely interesting experience that I created a course to teach you the same skills! Learn to build your own Terraform provider in your favorite language. This hands-on experience will give you insider knowledge of how Terraform works under the hood and empower you on your Terraform journey.
+
+Perfect for both aspiring provider builders and Terraform practitioners looking to sharpen their skills.
+
+👉 Learn more about the sdk and the course at https://entropitor.com/tf-sdk/${args.name}`,
+            );
+
             yield* preValidateSchema(config, provider.schema);
 
             if (provider.validate == null) {
