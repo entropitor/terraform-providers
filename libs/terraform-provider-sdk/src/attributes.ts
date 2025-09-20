@@ -89,7 +89,7 @@ class PrimitiveAttribute<
   }
 }
 
-type AttributeFields = Record<string, Attribute>;
+export type AttributeFields = Record<string, Attribute>;
 export type Fields = Record<string, Attribute | UnionAttribute<any>>;
 
 class CompositeAttribute<

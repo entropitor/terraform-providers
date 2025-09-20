@@ -1,14 +1,19 @@
 import type { Client } from "@atcute/client";
 import type { Records } from "@atcute/lexicons/ambient";
+import type * as v from "@atcute/lexicons/validations";
 import { DiagnosticError } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { RemoteResourceNotFound } from "@entropitor/terraform-provider-sdk/src/resource.js";
 import { Effect } from "effect";
 
 export type Collection = `${string}.${string}.${string}`;
 
-type RecordFor<TCollection extends Collection> =
+export type RecordFor<TCollection extends Collection> =
   TCollection extends keyof Records ?
-    Record<string, unknown> & Records[TCollection]
+    Records[TCollection] extends v.BaseSchema ?
+      Omit<v.InferInput<Records[TCollection]>, "$type"> & {
+        $type?: TCollection;
+      }
+    : Records[TCollection]
   : Record<string, unknown>;
 
 export const buildRecordClient = ({
@@ -67,6 +72,7 @@ export const buildRecordClient = ({
           repo,
           collection,
           rkey: rkey ?? undefined,
+          // @ts-expect-error TypeScript doesn't know we have specialized the collection type
           record,
         },
       }),
@@ -88,7 +94,7 @@ export const buildRecordClient = ({
       collection,
       rkey: createdRkey,
       cid: response.data.cid,
-      record,
+      record: record as Record<string, unknown>,
     };
   });
 
@@ -109,7 +115,7 @@ export const buildRecordClient = ({
           repo,
           collection,
           rkey,
-          record,
+          record: record as Record<string, unknown>,
         },
       }),
     );
