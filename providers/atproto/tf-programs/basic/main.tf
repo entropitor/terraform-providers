@@ -2,7 +2,7 @@ terraform {
   required_providers {
     atproto = {
       source  = "entropitor/atproto"
-      version = "1.0.0"
+      version = "0.0.1"
     }
   }
 }
@@ -47,4 +47,22 @@ data "atproto_account" "barack_obama" {
 }
 resource "atproto_tangled_follow" "barack_obama" {
   subject = data.atproto_account.barack_obama.did
+}
+
+# resource "atproto_tangled_repository" "test" {
+#   knot = "knot1.tangled.sh"
+#   name = "test"
+# }
+# resource "atproto_tangled_repository_collaborator" "entropitor" {
+#   repo    = atproto_tangled_repository.test.uri
+#   subject = data.atproto_account.barack_obama.did
+# }
+
+
+resource "atproto_tangled_profile" "profile" {
+  bluesky     = false
+  description = "Test account for a Tangled terraform provider"
+  links = [
+    "https://entropitor.com",
+  ]
 }

@@ -5,6 +5,7 @@ import {
   tf,
   transform,
   Unknown,
+  withDescription,
 } from "@entropitor/terraform-provider-sdk";
 import { Diagnostics } from "@entropitor/terraform-provider-sdk/src/diagnostics.js";
 import { Effect } from "effect";
@@ -18,12 +19,34 @@ const parseCollectionName = (s: string): `${string}.${string}.${string}` => {
 
 export const atprotoRecordResource = atprotoProviderBuilder.resource({
   schema: schema({
-    rkey: tf.computedIfNotGiven.string().pipe(requiresReplacementOnChange()),
+    rkey: tf.computedIfNotGiven
+      .string()
+      .pipe(
+        requiresReplacementOnChange(),
+        withDescription(
+          "The rkey for this record. Will be created by your PDS if not given.",
+        ),
+      ),
     collection: tf.required
       .custom(transform(attributeType.string, parseCollectionName))
-      .pipe(requiresReplacementOnChange()),
-    record: tf.required.any(),
-    cid: tf.alwaysComputed.string(),
+      .pipe(
+        requiresReplacementOnChange(),
+        withDescription("The collection for this record."),
+      ),
+    record: tf.required
+      .any()
+      .pipe(
+        withDescription(
+          "The record content. This is the exact 'json' object as  you want it to appear on your PDS.",
+        ),
+      ),
+    cid: tf.alwaysComputed
+      .string()
+      .pipe(
+        withDescription(
+          "The CID of this record, as computed by your PDS after creating/updating your record.",
+        ),
+      ),
   }),
 
   read({ savedState }, client) {

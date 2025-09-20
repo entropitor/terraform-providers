@@ -4,6 +4,7 @@ import {
   schema,
   tf,
   Unknown,
+  withDescription,
 } from "@entropitor/terraform-provider-sdk";
 import type {
   AttributeFields,
@@ -23,6 +24,7 @@ export const createRecordResource = <
   schema: TFields;
   collection: TCollection;
   rkey?: string;
+  description?: string;
 
   recordToState: (
     record: RecordFor<TCollection>,
@@ -37,13 +39,28 @@ export const createRecordResource = <
     client: ProviderStateFor<typeof atprotoProviderBuilder>,
   ) => RecordFor<TCollection>;
 }) => {
-  const recordSchema = schema({
+  let recordSchema = schema({
     ...recordDefinition.schema,
 
-    rkey: tf.computedIfNotGiven.string().pipe(requiresReplacementOnChange()),
-    cid: tf.alwaysComputed.string(),
-    uri: tf.alwaysComputed.string(),
+    rkey: tf.computedIfNotGiven
+      .string()
+      .pipe(
+        requiresReplacementOnChange(),
+        withDescription("The rkey of this record in your PDS."),
+      ),
+    cid: tf.alwaysComputed
+      .string()
+      .pipe(withDescription("The CID of this atproto record.")),
+    uri: tf.alwaysComputed
+      .string()
+      .pipe(withDescription("The URI of this atproto record.")),
   });
+  if (recordDefinition.description != null) {
+    recordSchema = recordSchema.pipe(
+      withDescription(recordDefinition.description),
+    );
+  }
+
   const recordConfig = (config: ConfigFor<typeof recordSchema>) => {
     const { rkey: _rkey, cid: _cid, uri: _uri, ...recordConfig } = config;
     return recordConfig as ConfigFor<{ attributes: TFields }>;

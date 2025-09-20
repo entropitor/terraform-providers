@@ -14,6 +14,7 @@ import {
   providerBuilder,
   schema,
   tf,
+  withDescription,
 } from "@entropitor/terraform-provider-sdk";
 import {
   DiagnosticError,
@@ -43,8 +44,16 @@ const parseDidOrHandle = (didOrHandle: DidOrHandle) => {
 
 export const atprotoProviderBuilder = providerBuilder({
   schema: schema({
-    handle: tf.required.custom(didOrHandleAttribute),
-    app_password: tf.required.string(),
+    handle: tf.required
+      .custom(didOrHandleAttribute)
+      .pipe(withDescription("Your atproto handle or did")),
+    app_password: tf.required
+      .string()
+      .pipe(
+        withDescription(
+          "Your app password. OAuth Tokens are currently not supported",
+        ),
+      ),
   }),
 
   configure({ config }) {
