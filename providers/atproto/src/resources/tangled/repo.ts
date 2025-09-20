@@ -7,7 +7,7 @@ export const repository = createRecordResource({
   collection: "sh.tangled.repo",
   schema: {
     name: tf.required.string(),
-    owner: tf.required.custom(didStringAttribute),
+    owner: tf.computedIfNotGiven.custom(didStringAttribute),
     knot: tf.required.string(),
     spindle: tf.optional.string(),
     description: tf.optional.string(),
@@ -15,18 +15,20 @@ export const repository = createRecordResource({
     createdAt: tf.computedIfNotGiven.string(),
   },
   recordToState: (record) => record,
-  recordForCreation: (config) => ({
+  recordForCreation: (config, client) => ({
     ...config,
     spindle: config.spindle ?? undefined,
     description: config.description ?? undefined,
     source: config.source ?? undefined,
+    owner: config.owner ?? client.session.did,
     createdAt: config.createdAt ?? new Date().toISOString(),
   }),
-  recordForUpdate: (config, prior) => ({
+  recordForUpdate: (config, prior, client) => ({
     ...config,
     spindle: config.spindle ?? undefined,
     description: config.description ?? undefined,
     source: config.source ?? undefined,
+    owner: config.owner ?? client.session.did,
     createdAt: config.createdAt ?? prior.createdAt,
   }),
 });

@@ -325,6 +325,8 @@ export const tf = {
   },
   computedIfNotGiven: {
     boolean: () => new PrimitiveAttribute("boolean", "computed_if_not_given"),
+    custom: <T>(customType: IAttributeType<T>) =>
+      new CustomAttribute(customType, "computed_if_not_given"),
     string: () => new PrimitiveAttribute("string", "computed_if_not_given"),
     number: () => new PrimitiveAttribute("number", "computed_if_not_given"),
     object: <TFields extends Fields>(fields: TFields) =>

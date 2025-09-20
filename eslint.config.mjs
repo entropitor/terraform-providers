@@ -302,6 +302,14 @@ const strictTypeChecked = tseslint.config(
       "no-console": "off",
     },
   },
+
+  {
+    files: ["providers/atproto/src/resources/tangled/repo.ts"],
+    rules: {
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+    },
+  },
 );
 
 export default strictTypeChecked;

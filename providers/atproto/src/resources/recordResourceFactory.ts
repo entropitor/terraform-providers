@@ -10,6 +10,7 @@ import type {
   ConfigFor,
   StateFor,
 } from "@entropitor/terraform-provider-sdk/src/attributes.js";
+import type { ProviderStateFor } from "@entropitor/terraform-provider-sdk/src/provider.js";
 import { Effect } from "effect";
 
 import { atprotoProviderBuilder } from "../builder.js";
@@ -27,10 +28,12 @@ export const createRecordResource = <
   ) => StateFor<{ attributes: TFields }>;
   recordForCreation: (
     config: ConfigFor<{ attributes: TFields }>,
+    client: ProviderStateFor<typeof atprotoProviderBuilder>,
   ) => RecordFor<TCollection>;
   recordForUpdate: (
     config: ConfigFor<{ attributes: TFields }>,
     priorState: StateFor<{ attributes: TFields }>,
+    client: ProviderStateFor<typeof atprotoProviderBuilder>,
   ) => RecordFor<TCollection>;
 }) => {
   const recordSchema = schema({
@@ -110,7 +113,10 @@ export const createRecordResource = <
     // @ts-expect-error TypeScript doesn't know that the return type is correct
     create({ config }, client) {
       return Effect.gen(function* () {
-        const record = recordDefinition.recordForCreation(recordConfig(config));
+        const record = recordDefinition.recordForCreation(
+          recordConfig(config),
+          client,
+        );
         const { rkey, cid, uri } = yield* client.records.create({
           collection: recordDefinition.collection,
           // @ts-expect-error TypeScript doesn't know that schema doesn't override rkey for some reason
@@ -135,6 +141,7 @@ export const createRecordResource = <
         const record = recordDefinition.recordForUpdate(
           recordConfig(config),
           prior as StateFor<{ attributes: TFields }>,
+          client,
         );
 
         const { cid, uri } = yield* client.records.update({

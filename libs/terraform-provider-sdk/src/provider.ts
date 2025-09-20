@@ -193,6 +193,10 @@ class ProviderBuilder<TProviderSchema extends Schema, TInternalState> {
   }
 }
 
+export type ProviderStateFor<TProvider> =
+  TProvider extends ProviderBuilder<any, infer TInternalState> ? TInternalState
+  : never;
+
 export const providerBuilder = <TProviderSchema extends Schema, TInternalState>(
   args: IProvider<TProviderSchema, TInternalState>,
 ) => {
