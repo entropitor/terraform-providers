@@ -29,6 +29,7 @@ export const buildRecordClient = ({
   }) => Effect.Effect<
     {
       record: RecordFor<TCollection>;
+      uri: string;
       cid: string;
     },
     DiagnosticError | RemoteResourceNotFound
@@ -52,6 +53,7 @@ export const buildRecordClient = ({
       record: response.data.value as RecordFor<typeof collection>,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       cid: response.data.cid!,
+      uri: response.data.uri,
     };
   });
 
@@ -95,6 +97,7 @@ export const buildRecordClient = ({
       rkey: createdRkey,
       cid: response.data.cid,
       record: record as Record<string, unknown>,
+      uri: response.data.uri,
     };
   });
 
@@ -135,6 +138,7 @@ export const buildRecordClient = ({
       rkey,
       cid: response.data.cid,
       record,
+      uri: response.data.uri,
     };
   });
 

@@ -33,17 +33,25 @@ export const createRecordResource = <
     priorState: StateFor<{ attributes: TFields }>,
   ) => RecordFor<TCollection>;
 }) => {
+  const recordSchema = schema({
+    ...recordDefinition.schema,
+
+    rkey: tf.computedIfNotGiven.string().pipe(requiresReplacementOnChange()),
+    cid: tf.alwaysComputed.string(),
+    uri: tf.alwaysComputed.string(),
+  });
+  const recordConfig = (config: ConfigFor<typeof recordSchema>) => {
+    const { rkey: _rkey, cid: _cid, uri: _uri, ...recordConfig } = config;
+    return recordConfig as ConfigFor<{ attributes: TFields }>;
+  };
+
   return atprotoProviderBuilder.resource({
-    schema: schema({
-      ...recordDefinition.schema,
+    schema: recordSchema,
 
-      rkey: tf.computedIfNotGiven.string().pipe(requiresReplacementOnChange()),
-      cid: tf.alwaysComputed.string(),
-    }),
-
+    // @ts-expect-error TypeScript doesn't know that the return type is correct
     read({ savedState }, client) {
       return Effect.gen(function* () {
-        const { cid, record } = yield* client.records.get({
+        const { cid, record, uri } = yield* client.records.get({
           collection: recordDefinition.collection,
           // @ts-expect-error TypeScript doesn't know that schema doesn't override rkey for some reason
           rkey: savedState.rkey,
@@ -51,9 +59,10 @@ export const createRecordResource = <
 
         return {
           currentState: {
-            ...savedState,
-            ...record,
+            rkey: savedState.rkey,
+            ...recordDefinition.recordToState(record),
             cid,
+            uri,
           },
         };
       });
@@ -62,7 +71,7 @@ export const createRecordResource = <
     // @ts-expect-error TypeScript doesn't know that the return type is correct
     import({ resourceId: rkey }, client) {
       return Effect.gen(function* () {
-        const { cid, record } = yield* client.records
+        const { cid, record, uri } = yield* client.records
           .get({
             collection: recordDefinition.collection,
             rkey,
@@ -75,9 +84,10 @@ export const createRecordResource = <
 
         return {
           currentState: {
+            ...recordDefinition.recordToState(record),
             rkey,
             cid,
-            ...recordDefinition.recordToState(record),
+            uri,
           },
         };
       });
@@ -100,9 +110,8 @@ export const createRecordResource = <
     // @ts-expect-error TypeScript doesn't know that the return type is correct
     create({ config }, client) {
       return Effect.gen(function* () {
-        // @ts-expect-error TypeScript doesn't know that config should be supertype of ConfigFor
-        const record = recordDefinition.recordForCreation(config);
-        const { rkey, cid } = yield* client.records.create({
+        const record = recordDefinition.recordForCreation(recordConfig(config));
+        const { rkey, cid, uri } = yield* client.records.create({
           collection: recordDefinition.collection,
           // @ts-expect-error TypeScript doesn't know that schema doesn't override rkey for some reason
           rkey: config.rkey,
@@ -114,6 +123,7 @@ export const createRecordResource = <
             ...recordDefinition.recordToState(record),
             rkey,
             cid,
+            uri,
           },
         };
       });
@@ -122,10 +132,12 @@ export const createRecordResource = <
     // @ts-expect-error TypeScript doesn't know that the return type is correct
     update({ config, priorState: prior }, client) {
       return Effect.gen(function* () {
-        // @ts-expect-error TypeScript doesn't know that config should be supertype of ConfigFor
-        const record = recordDefinition.recordForUpdate(config, prior);
+        const record = recordDefinition.recordForUpdate(
+          recordConfig(config),
+          prior as StateFor<{ attributes: TFields }>,
+        );
 
-        const { cid } = yield* client.records.update({
+        const { cid, uri } = yield* client.records.update({
           collection: recordDefinition.collection,
           // @ts-expect-error TypeScript doesn't know that schema doesn't override rkey for some reason
           rkey: prior.rkey,
@@ -137,6 +149,7 @@ export const createRecordResource = <
             ...recordDefinition.recordToState(record),
             rkey: prior.rkey,
             cid,
+            uri,
           },
         };
       });
