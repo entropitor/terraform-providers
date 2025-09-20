@@ -136,6 +136,9 @@ importers:
       '@atcute/lexicons':
         specifier: ^1.1.1
         version: 1.1.1
+      '@atcute/tangled':
+        specifier: ^1.0.6
+        version: 1.0.6
       '@entropitor/terraform-provider-sdk':
         specifier: workspace:^
         version: link:../../libs/terraform-provider-sdk
@@ -182,6 +185,9 @@ packages:
   '@atcute/atproto@3.1.1':
     resolution: {integrity: sha512-D+RLTIPF0xLu7BPZY8KSewAPemJFh+3n3zeQ3ROsLxbTtCHbrTDMAmAFexaVRAPGcPYrwXaBUlv7yZjScJolMg==}
 
+  '@atcute/atproto@3.1.4':
+    resolution: {integrity: sha512-v0/ue7mZYtjYw4vWbtda51bLwW88mqsUQB8F/UZNO18ANAQWmKq1HDceVqjvruaLe2QPqE43XM3WkEyZ2FhOrA==}
+
   '@atcute/client@4.0.3':
     resolution: {integrity: sha512-RIOZWFVLca/HiPAAUDqQPOdOreCxTbL5cb+WUf5yqQOKIu5yEAP3eksinmlLmgIrlr5qVOE7brazUUzaskFCfw==}
 
@@ -201,6 +207,9 @@ packages:
 
   '@atcute/lexicons@1.1.1':
     resolution: {integrity: sha512-k6qy5p3j9fJJ6ekaMPfEfp3ni4TW/XNuH9ZmsuwC0fi0tOjp+Fa8ZQakHwnqOzFt/cVBfGcmYE/lKNAbeTjgUg==}
+
+  '@atcute/tangled@1.0.6':
+    resolution: {integrity: sha512-eEOtrKRbjKfeLYtb5hmkhE45w8h4sV6mT4E2CQzJmhOMGCiK31GX7Vqfh59rhNLb9AlbW72RcQTV737pxx+ksw==}
 
   '@atcute/util-fetch@1.0.1':
     resolution: {integrity: sha512-Clc0E/5ufyGBVfYBUwWNlHONlZCoblSr4Ho50l1LhmRPGB1Wu/AQ9Sz+rsBg7fdaW/auve8ulmwhRhnX2cGRow==}
@@ -1173,6 +1182,10 @@ snapshots:
     dependencies:
       '@atcute/lexicons': 1.1.1
 
+  '@atcute/atproto@3.1.4':
+    dependencies:
+      '@atcute/lexicons': 1.1.1
+
   '@atcute/client@4.0.3':
     dependencies:
       '@atcute/identity': 1.0.3
@@ -1199,6 +1212,11 @@ snapshots:
   '@atcute/lexicons@1.1.1':
     dependencies:
       esm-env: 1.2.2
+
+  '@atcute/tangled@1.0.6':
+    dependencies:
+      '@atcute/atproto': 3.1.4
+      '@atcute/lexicons': 1.1.1
 
   '@atcute/util-fetch@1.0.1':
     dependencies:

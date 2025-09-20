@@ -293,6 +293,8 @@ export const transform = <TFrom, TResult>(
 export const tf = {
   optional: {
     boolean: () => new PrimitiveAttribute("boolean", "optional"),
+    custom: <T>(customType: IAttributeType<T>) =>
+      new CustomAttribute(customType, "optional"),
     string: () => new PrimitiveAttribute("string", "optional"),
     number: () => new PrimitiveAttribute("number", "optional"),
     object: <TFields extends Fields>(fields: TFields) =>
