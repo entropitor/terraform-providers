@@ -1,6 +1,13 @@
 import type { ResourceUri } from "@atcute/lexicons";
 import { attributeType, transform } from "@entropitor/terraform-provider-sdk";
 
+export const messageFrom = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "Unknown error occurred";
+};
+
 export type Did = `did:plc:${string}` | `did:web:${string}`;
 export type Handle = `${string}.${string}`;
 export type DidOrHandle = Did | Handle;

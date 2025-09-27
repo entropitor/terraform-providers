@@ -23,14 +23,12 @@ import {
 import { Effect } from "effect";
 
 import { buildRecordClient } from "./buildRecordClient.js";
-import { type Did, type DidOrHandle, didOrHandleAttribute } from "./utils.js";
-
-const messageFrom = (error: unknown) => {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return "Unknown error occurred";
-};
+import {
+  type Did,
+  type DidOrHandle,
+  didOrHandleAttribute,
+  messageFrom,
+} from "./utils.js";
 
 const isDid = (didOrHandle: DidOrHandle): didOrHandle is Did => {
   return didOrHandle.startsWith("did:");
