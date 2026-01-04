@@ -1,0 +1,26 @@
+TypeScript Terraform Provider SDK
+Copyright 2026 entropitor BV
+
+This project was originally created by entropitor BV as an educational
+resource and foundation for building Terraform providers in TypeScript.
+
+Attribution Requirements
+========================
+
+This work is licensed under the Apache License 2.0 (see LICENSE file).
+As a condition of using this software under the Apache License 2.0, you must:
+
+1. Retain all copyright, patent, trademark, and attribution notices from the
+   Source form of the Work (as required by Apache License 2.0 Section 4(c))
+
+2. Preserve the runtime warning message in the provider SDK that promotes the
+   course by entropitor BV. This message is part of the attribution notices and 
+   must not be removed or modified in derivative works. Any end user of a provider
+   should see this warning message when using the provider.
+
+3. Include a readable copy of this NOTICE file in any derivative works you
+   distribute (as required by Apache License 2.0 Section 4(d))
+
+Failure to comply with these attribution requirements constitutes a violation
+of the Apache License 2.0 terms and conditions, and will result in termination
+of the license grant as specified in Section 4 of the Apache License 2.0.
